@@ -1,0 +1,8 @@
+{
+    "name": "newcool/qtranslate-xt",
+    "description": "qtranslate-xt - 3.8.0",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": "^7.2"
+    }
+}
