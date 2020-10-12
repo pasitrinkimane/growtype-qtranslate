@@ -1,19 +1,19 @@
 /*
-	Copyright 2019  qTranslate-XT  (https://github.com/qtranslate/qtranslate-xt)
+    Copyright 2019  qTranslate-XT  (https://github.com/qtranslate/qtranslate-xt)
 
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 */
 /**
  * Search for 'Designed as interface for other plugin integration' in comments to functions
@@ -1229,7 +1229,7 @@ function qtranxj_ce(tagName, props, pNode, isFirst) {
             }
             if ($('.qtranxs-lang-switch-wrap').hasClass('copying')) {
                 qtx.copyContentFrom(lang);
-                $(tabSwitch).find('.button').blur();	// remove focus of source language in case of layout with button
+                $(tabSwitch).find('.button').blur();    // remove focus of source language in case of layout with button
                 $('.qtranxs-lang-switch-wrap').removeClass('copying');
                 $('.qtranxs-lang-copy .button').removeClass('active');
             } else {
@@ -1390,14 +1390,14 @@ function qtranxj_ce(tagName, props, pNode, isFirst) {
                     var langSwitchWrap = qtx.createSetOfLSB();
                     anchor.f.parentNode.insertBefore(langSwitchWrap, anchor.f.nextSibling);
                 }
-                if (anchor.where && anchor.where.indexOf('first') >= 0) {
-                    var langSwitchWrap = qtx.createSetOfLSB();
-                    anchor.f.insertBefore(langSwitchWrap, anchor.f.firstChild);
-                }
-                if (anchor.where && anchor.where.indexOf('last') >= 0) {
-                    var langSwitchWrap = qtx.createSetOfLSB();
-                    anchor.f.insertBefore(langSwitchWrap, null);
-                }
+                // if (anchor.where && anchor.where.indexOf('first') >= 0) {
+                //     var langSwitchWrap = qtx.createSetOfLSB();
+                //     anchor.f.insertBefore(langSwitchWrap, anchor.f.firstChild);
+                // }
+                // if (anchor.where && anchor.where.indexOf('last') >= 0) {
+                //     var langSwitchWrap = qtx.createSetOfLSB();
+                //     anchor.f.insertBefore(langSwitchWrap, null);
+                // }
             }
 
             /**
