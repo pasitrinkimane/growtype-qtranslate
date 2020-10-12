@@ -1390,10 +1390,10 @@ function qtranxj_ce(tagName, props, pNode, isFirst) {
                     var langSwitchWrap = qtx.createSetOfLSB();
                     anchor.f.parentNode.insertBefore(langSwitchWrap, anchor.f.nextSibling);
                 }
-                // if (anchor.where && anchor.where.indexOf('first') >= 0) {
-                //     var langSwitchWrap = qtx.createSetOfLSB();
-                //     anchor.f.insertBefore(langSwitchWrap, anchor.f.firstChild);
-                // }
+                if (anchor.where && anchor.where.indexOf('first') >= 0) {
+                    var langSwitchWrap = qtx.createSetOfLSB();
+                    anchor.f.insertBefore(langSwitchWrap, anchor.f.firstChild);
+                }
                 // if (anchor.where && anchor.where.indexOf('last') >= 0) {
                 //     var langSwitchWrap = qtx.createSetOfLSB();
                 //     anchor.f.insertBefore(langSwitchWrap, null);
