@@ -976,8 +976,8 @@ function qtranxf_force_main_language()
 
     if ($q_config['force_main_language'] === true && !(is_admin())) {
         $actual_link = "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        if (qtranxf_getLanguage() === 'lt') {
-            header("Location: " . qtranxf_convertURL($actual_link, 'en', true, true));
+        if (qtranxf_getLanguage() !== qtranxf_getLanguageDefault()) {
+            header("Location: " . qtranxf_convertURL($actual_link, qtranxf_getLanguageDefault(), true, true));
             die();
         }
     }
