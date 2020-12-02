@@ -427,6 +427,17 @@ class QTX_Admin_Settings {
                     <p class="qtranxs-notes"><?php _e( 'When the frontpage is visited via bookmark/external link/type-in, the visitor will be forwarded to the correct URL for the language specified by his browser.', 'qtranslate' ) ?></p>
                 </td>
             </tr>
+            <tr>
+                <th scope="row"><?php _e( 'Language Forcing', 'qtranslate' ) ?></th>
+                <td>
+                    <label for="force_main_language"><input type="checkbox"
+                                                                name="force_main_language"
+                                                                id="force_main_language"
+                                                                value="1"<?php checked( $q_config['force_main_language'] ) ?>/> <?php _e( 'Force main language.', 'qtranslate' ) ?>
+                    </label>
+                    <p class="qtranxs-notes"><?php _e( 'Force to always show main language in frontend. Useful if only one language in frontend, but multiple languages in backend.', 'qtranslate' ) ?></p>
+                </td>
+            </tr>
         </table>
         <?php
         $this->close_section( 'general' );

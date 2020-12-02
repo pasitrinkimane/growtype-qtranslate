@@ -76,6 +76,7 @@ function qtranxf_set_default_options( &$ops ) {
 
     $ops['front']['bool'] = array(
         'detect_browser_language'        => true,   // enables browser language detection
+        'force_main_language'        => false,   // enables browser language detection
         'hide_untranslated'              => false,  // hide pages without content
         'show_displayed_language_prefix' => true,
         'show_alternative_content'       => false,
