@@ -376,7 +376,7 @@ function qtranxj_ce(tagName, props, pNode, isFirst) {
                         }, $form[0], true);
                     }
                 } else {
-                    console.error('No form found for translatable field id=', inpField.id);
+                    console.info('No form found for translatable field id=', inpField.id);
                 }
             }
 

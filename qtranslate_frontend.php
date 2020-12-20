@@ -846,7 +846,9 @@ function qtranxf_translate_metadata($meta_type, $original_value, $object_id, $me
  */
 function qtranxf_filter_postmeta($original_value, $object_id, $meta_key = '', $single = false)
 {
-    return qtranxf_translate_metadata('post', $original_value, $object_id, $meta_key, $single);
+    if (strpos($meta_key, 'editor_plus') !== 0) {
+        return qtranxf_translate_metadata('post', $original_value, $object_id, $meta_key, $single);
+    }
 }
 
 add_filter('get_post_metadata', 'qtranxf_filter_postmeta', 5, 4);
