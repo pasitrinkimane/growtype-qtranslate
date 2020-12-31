@@ -126,9 +126,9 @@ if ( wp_doing_cron() ) {
  * @return string cart hash with language information
  */
 function qwc_get_cart_hash( $cart ) {
-    $lang = qtranxf_getLanguage();
+    // $lang = qtranxf_getLanguage();
 
-    return md5( json_encode( $cart ) . $lang );
+    return md5( json_encode( $cart ) );
 }
 
 /**
