@@ -58,7 +58,7 @@ class QTX_Admin_Gutenberg {
             return $response;
         }
 
-        if ( ! use_block_editor_for_post( $post ) ) {
+        if ( function_exists('use_block_editor_for_post') && !use_block_editor_for_post( $post ) ) {
             return $response;
         }
 
