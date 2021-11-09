@@ -932,7 +932,10 @@ function qtranxj_ce(tagName, props, pNode, isFirst) {
                  * Highlighting the translatable fields
                  * @since 3.2-b3
                  */
-                ed.getContainer().className += ' qtranxs-translatable';
+                if (ed.getContainer() !== null) {
+                    ed.getContainer().className += ' qtranxs-translatable';
+                }
+
                 ed.getElement().className += ' qtranxs-translatable';
 
                 var updateTinyMCEonInit = h.updateTinyMCEonInit;
