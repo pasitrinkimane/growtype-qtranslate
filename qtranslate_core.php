@@ -300,7 +300,7 @@ function qtranxf_parse_language_info(&$url_info, $link = false)
                         if (!isset($q_config['domains'][$lang])) {
                             continue;
                         }
-                        if ($q_config['domains'][$lang] != $url_info['host']) {
+                        if (!str_contains($url_info['host'], $q_config['domains'][$lang])) {
                             continue;
                         }
                         $url_info['lang_url'] = $lang;
