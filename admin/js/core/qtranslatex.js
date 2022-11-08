@@ -239,7 +239,7 @@ const qTranslateX = function (pg) {
                     }, $form[0], true);
                 }
             } else {
-                console.error('No form found for translatable field id=', inputField.id);
+                console.info('qtranslate-xt. No form found for translatable field id=', inputField.id);
             }
         }
 
