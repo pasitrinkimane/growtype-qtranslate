@@ -20,24 +20,25 @@
  * @todo Maybe deprecate. Avoid using this function, meant to transition from legacy strftime formats.
  * @see https://gist.github.com/bohwaz/42fc223031e2b2dd2585aab159a20f30 (for the original code).
  */
-function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
-    if ( null === $timestamp ) {
+function qxtranxf_intl_strftime($format, $timestamp = null, $locale = null)
+{
+    if (null === $timestamp) {
         $timestamp = new \DateTime;
-    } elseif ( is_numeric( $timestamp ) ) {
-        $timestamp = date_create( '@' . $timestamp );
+    } elseif (is_numeric($timestamp)) {
+        $timestamp = date_create('@' . $timestamp);
 
-        if ( $timestamp ) {
-            $timestamp->setTimezone( new \DateTimezone( date_default_timezone_get() ) );
+        if ($timestamp) {
+            $timestamp->setTimezone(new \DateTimezone(date_default_timezone_get()));
         }
-    } elseif ( is_string( $timestamp ) ) {
-        $timestamp = date_create( $timestamp );
+    } elseif (is_string($timestamp)) {
+        $timestamp = date_create($timestamp);
     }
 
-    if ( ! ( $timestamp instanceof \DateTimeInterface ) ) {
-        throw new \InvalidArgumentException( '$timestamp argument is neither a valid UNIX timestamp, a valid date-time string or a DateTime object.' );
+    if (!($timestamp instanceof \DateTimeInterface)) {
+        throw new \InvalidArgumentException('$timestamp argument is neither a valid UNIX timestamp, a valid date-time string or a DateTime object.');
     }
 
-    $locale = substr( (string) $locale, 0, 5 );
+    $locale = substr((string)$locale, 0, 5);
 
     $intl_formats = [
         '%a' => 'EEE',    // An abbreviated textual representation of the day	Sun through Sat
@@ -47,34 +48,37 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
         '%h' => 'MMM',    // Abbreviated month name, based on the locale (an alias of %b)	Jan through Dec
     ];
 
-    // \DateTimeInterface, string
-    $intl_formatter = function ( $timestamp, $format ) use ( $intl_formats, $locale ) {
-        $tz        = $timestamp->getTimezone();
-        $date_type = \IntlDateFormatter::FULL;
-        $time_type = \IntlDateFormatter::FULL;
-        $pattern   = '';
+    if ((int)phpversion() < 8) {
+        $intl_formatter = '';
+    } else {
+        $intl_formatter = function ($timestamp, $format) use ($intl_formats, $locale) {
+            $tz = $timestamp->getTimezone();
+            $date_type = \IntlDateFormatter::FULL;
+            $time_type = \IntlDateFormatter::FULL;
+            $pattern = '';
 
-        // %c = Preferred date and time stamp based on locale
-        // Example: Tue Feb 5 00:45:10 2009 for February 5, 2009 at 12:45:10 AM
-        if ( $format == '%c' ) {
-            $date_type = \IntlDateFormatter::LONG;
-            $time_type = \IntlDateFormatter::SHORT;
-        }
-        // %x = Preferred date representation based on locale, without the time
-        // Example: 02/05/09 for February 5, 2009
-        elseif ( $format == '%x' ) {
-            $date_type = \IntlDateFormatter::SHORT;
-            $time_type = \IntlDateFormatter::NONE;
-        } // Localized time format
-        elseif ( $format == '%X' ) {
-            $date_type = \IntlDateFormatter::NONE;
-            $time_type = \IntlDateFormatter::MEDIUM;
-        } else {
-            $pattern = $intl_formats[ $format ];
-        }
+            // %c = Preferred date and time stamp based on locale
+            // Example: Tue Feb 5 00:45:10 2009 for February 5, 2009 at 12:45:10 AM
+            if ($format == '%c') {
+                $date_type = \IntlDateFormatter::LONG;
+                $time_type = \IntlDateFormatter::SHORT;
+            }
+            // %x = Preferred date representation based on locale, without the time
+            // Example: 02/05/09 for February 5, 2009
+            elseif ($format == '%x') {
+                $date_type = \IntlDateFormatter::SHORT;
+                $time_type = \IntlDateFormatter::NONE;
+            } // Localized time format
+            elseif ($format == '%X') {
+                $date_type = \IntlDateFormatter::NONE;
+                $time_type = \IntlDateFormatter::MEDIUM;
+            } else {
+                $pattern = $intl_formats[$format];
+            }
 
-        return ( new \IntlDateFormatter( $locale, $date_type, $time_type, $tz, null, $pattern ) )->format( $timestamp );
-    };
+            return (new \IntlDateFormatter($locale, $date_type, $time_type, $tz, null, $pattern))->format($timestamp);
+        };
+    }
 
     // Same order as https://www.php.net/manual/en/function.strftime.php
     $translation_table = [
@@ -82,29 +86,29 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
         '%a' => $intl_formatter,
         '%A' => $intl_formatter,
         '%d' => 'd',
-        '%e' => function ( $timestamp ) {
-            return sprintf( '% 2u', $timestamp->format( 'j' ) );
+        '%e' => function ($timestamp) {
+            return sprintf('% 2u', $timestamp->format('j'));
         },
-        '%j' => function ( $timestamp ) {
+        '%j' => function ($timestamp) {
             // Day number in year, 001 to 366
-            return sprintf( '%03d', $timestamp->format( 'z' ) + 1 );
+            return sprintf('%03d', $timestamp->format('z') + 1);
         },
         '%u' => 'N',
         '%w' => 'w',
 
         // Week
-        '%U' => function ( $timestamp ) {
+        '%U' => function ($timestamp) {
             // Number of weeks between date and first Sunday of year
-            $day = new \DateTime( sprintf( '%d-01 Sunday', $timestamp->format( 'Y' ) ) );
+            $day = new \DateTime(sprintf('%d-01 Sunday', $timestamp->format('Y')));
 
-            return sprintf( '%02u', 1 + ( $timestamp->format( 'z' ) - $day->format( 'z' ) ) / 7 );
+            return sprintf('%02u', 1 + ($timestamp->format('z') - $day->format('z')) / 7);
         },
         '%V' => 'W',
-        '%W' => function ( $timestamp ) {
+        '%W' => function ($timestamp) {
             // Number of weeks between date and first Monday of year
-            $day = new \DateTime( sprintf( '%d-01 Monday', $timestamp->format( 'Y' ) ) );
+            $day = new \DateTime(sprintf('%d-01 Monday', $timestamp->format('Y')));
 
-            return sprintf( '%02u', 1 + ( $timestamp->format( 'z' ) - $day->format( 'z' ) ) / 7 );
+            return sprintf('%02u', 1 + ($timestamp->format('z') - $day->format('z')) / 7);
         },
 
         // Month
@@ -114,12 +118,12 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
         '%m' => 'm',
 
         // Year
-        '%C' => function ( $timestamp ) {
+        '%C' => function ($timestamp) {
             // Century (-1): 19 for 20th century
-            return floor( $timestamp->format( 'Y' ) / 100 );
+            return floor($timestamp->format('Y') / 100);
         },
-        '%g' => function ( $timestamp ) {
-            return substr( $timestamp->format( 'o' ), -2 );
+        '%g' => function ($timestamp) {
+            return substr($timestamp->format('o'), -2);
         },
         '%G' => 'o',
         '%y' => 'y',
@@ -127,12 +131,12 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
 
         // Time
         '%H' => 'H',
-        '%k' => function ( $timestamp ) {
-            return sprintf( '% 2u', $timestamp->format( 'G' ) );
+        '%k' => function ($timestamp) {
+            return sprintf('% 2u', $timestamp->format('G'));
         },
         '%I' => 'h',
-        '%l' => function ( $timestamp ) {
-            return sprintf( '% 2u', $timestamp->format( 'g' ) );
+        '%l' => function ($timestamp) {
+            return sprintf('% 2u', $timestamp->format('g'));
         },
         '%M' => 'i',
         '%p' => 'A', // AM PM (this is reversed on purpose!)
@@ -173,27 +177,27 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
         '%4' => 'U',  // Seconds since the Unix Epoch
     ];
 
-    $out = preg_replace_callback( '/(?<!%)(%[a-zA-Z])/', function ( $match ) use ( $translation_table, $timestamp ) {
-        if ( $match[1] == '%n' ) {
+    $out = preg_replace_callback('/(?<!%)(%[a-zA-Z])/', function ($match) use ($translation_table, $timestamp) {
+        if ($match[1] == '%n') {
             return "\n";
-        } elseif ( $match[1] == '%t' ) {
+        } elseif ($match[1] == '%t') {
             return "\t";
         }
 
-        if ( ! isset( $translation_table[ $match[1] ] ) ) {
-            throw new \InvalidArgumentException( sprintf( 'Format "%s" is unknown in time format', $match[1] ) );
+        if (!isset($translation_table[$match[1]])) {
+            throw new \InvalidArgumentException(sprintf('Format "%s" is unknown in time format', $match[1]));
         }
 
-        $replace = $translation_table[ $match[1] ];
+        $replace = $translation_table[$match[1]];
 
-        if ( is_string( $replace ) ) {
-            return $timestamp->format( $replace );
+        if (is_string($replace)) {
+            return $timestamp->format($replace);
         } else {
-            return $replace( $timestamp, $match[1] );
+            return $replace($timestamp, $match[1]);
         }
-    }, $format );
+    }, $format);
 
-    $out = str_replace( '%%', '%', $out );
+    $out = str_replace('%%', '%', $out);
 
     return $out;
 }
@@ -208,8 +212,9 @@ function qxtranxf_intl_strftime( $format, $timestamp = null, $locale = null ) {
  * @see https://www.php.net/manual/en/function.strftime.php
  * @see https://www.php.net/manual/en/datetime.format.php
  */
-function qtranxf_convert_date_format_to_strftime_format( $format ) {
-    $mappings = array(
+function qtranxf_convert_date_format_to_strftime_format($format)
+{
+    $mappings = array (
         // day
         'd' => '%d',
         'D' => '%a',
@@ -256,19 +261,19 @@ function qtranxf_convert_date_format_to_strftime_format( $format ) {
         'U' => '%4'  // Seconds since the Unix Epoch
     );
 
-    $date_parameters       = array();
-    $strftime_parameters   = array();
-    $date_parameters[]     = '#%#';
+    $date_parameters = array ();
+    $strftime_parameters = array ();
+    $date_parameters[] = '#%#';
     $strftime_parameters[] = '%';
-    foreach ( $mappings as $df => $sf ) {
+    foreach ($mappings as $df => $sf) {
         // Format characters can be quoted with backslashes.
-        $date_parameters[]     = '#(([^%\\\\])' . $df . '|^' . $df . ')#';
+        $date_parameters[] = '#(([^%\\\\])' . $df . '|^' . $df . ')#';
         $strftime_parameters[] = '${2}' . $sf;
     }
     // convert everything
-    $format = preg_replace( $date_parameters, $strftime_parameters, $format );
+    $format = preg_replace($date_parameters, $strftime_parameters, $format);
     // Remove single backslashes and convert double to single.
-    return stripslashes( $format );
+    return stripslashes($format);
 }
 
 /**
@@ -279,9 +284,10 @@ function qtranxf_convert_date_format_to_strftime_format( $format ) {
  * @return string
  * @deprecated Use qtranxf_convert_date_format_to_strftime_format.
  */
-function qtranxf_convertDateFormatToStrftimeFormat( $format ) {
-    _deprecated_function( __FUNCTION__, '3.13.0', 'qtranxf_convert_date_format_to_strftime_format' );
-    return qtranxf_convert_date_format_to_strftime_format( $format );
+function qtranxf_convertDateFormatToStrftimeFormat($format)
+{
+    _deprecated_function(__FUNCTION__, '3.13.0', 'qtranxf_convert_date_format_to_strftime_format');
+    return qtranxf_convert_date_format_to_strftime_format($format);
 }
 
 /**
@@ -293,29 +299,30 @@ function qtranxf_convertDateFormatToStrftimeFormat( $format ) {
  * @return string format in strftime
  * @todo Maybe deprecate. Don't use strftime formats anymore, since strftime is deprecated from PHP8.1.
  */
-function qtranxf_convert_to_strftime_format_using_config( $format, $default_format ) {
+function qtranxf_convert_to_strftime_format_using_config($format, $default_format)
+{
     global $q_config;
     // If one of special language-neutral formats is requested, don't override it.
-    switch ( $format ) {
+    switch ($format) {
         case 'Z':
         case 'c':
         case 'r':
         case 'U':
-            return qtranxf_convert_date_format_to_strftime_format( $format );
+            return qtranxf_convert_date_format_to_strftime_format($format);
     }
     // Attention - this part is quite tricky.
     // The user format is always given in date format, but not the language format which depends on use_strftime settings.
     // The language format may contain escape backslash characters that must be unquoted in any case.
-    switch ( $q_config['use_strftime'] ) {
+    switch ($q_config['use_strftime']) {
         case QTX_DATE:
             // Convert both.
-            return qtranxf_convert_date_format_to_strftime_format( ! empty( $format ) ? $format : $default_format );
+            return qtranxf_convert_date_format_to_strftime_format(!empty($format) ? $format : $default_format);
         case QTX_DATE_OVERRIDE:
-            return qtranxf_convert_date_format_to_strftime_format( $default_format );
+            return qtranxf_convert_date_format_to_strftime_format($default_format);
         case QTX_STRFTIME:
-            return ( ! empty( $format ) ? qtranxf_convert_date_format_to_strftime_format( $format ) : stripslashes( $default_format ) );
+            return (!empty($format) ? qtranxf_convert_date_format_to_strftime_format($format) : stripslashes($default_format));
         case QTX_STRFTIME_OVERRIDE:
-            return stripslashes( $default_format );
+            return stripslashes($default_format);
         default:
             return '';
     }
@@ -330,9 +337,10 @@ function qtranxf_convert_to_strftime_format_using_config( $format, $default_form
  * @return string
  * @deprecated Use qtranxf_convert_to_strftime_format_using_config.
  */
-function qtranxf_convertFormat( $format, $default_format ) {
-    _deprecated_function( __FUNCTION__, '3.13.0', 'qtranxf_convert_to_strftime_format_using_config' );
-    return qtranxf_convert_to_strftime_format_using_config( $format, $default_format );
+function qtranxf_convertFormat($format, $default_format)
+{
+    _deprecated_function(__FUNCTION__, '3.13.0', 'qtranxf_convert_to_strftime_format_using_config');
+    return qtranxf_convert_to_strftime_format_using_config($format, $default_format);
 }
 
 /**
@@ -342,13 +350,14 @@ function qtranxf_convertFormat( $format, $default_format ) {
  *
  * @return string
  */
-function qtranxf_get_language_date_or_time_format( $config_key ) {
-    assert( $config_key == 'date_format' || $config_key == 'time_format' );
+function qtranxf_get_language_date_or_time_format($config_key)
+{
+    assert($config_key == 'date_format' || $config_key == 'time_format');
     global $q_config;
-    if ( isset( $q_config[ $config_key ][ $q_config['language'] ] ) ) {
-        return $q_config[ $config_key ][ $q_config['language'] ];
-    } elseif ( isset( $q_config[ $config_key ][ $q_config['default_language'] ] ) ) {
-        return $q_config[ $config_key ][ $q_config['default_language'] ];
+    if (isset($q_config[$config_key][$q_config['language']])) {
+        return $q_config[$config_key][$q_config['language']];
+    } elseif (isset($q_config[$config_key][$q_config['default_language']])) {
+        return $q_config[$config_key][$q_config['default_language']];
     } else {
         return '';
     }
@@ -362,10 +371,11 @@ function qtranxf_get_language_date_or_time_format( $config_key ) {
  * @return string
  * @deprecated Use qtranxf_get_language_date_or_time_format.
  */
-function qtranxf_convertDateFormat( $format ) {
-    _deprecated_function( __FUNCTION__, '3.13.0', 'qtranxf_get_language_date_or_time_format' );
-    $default_format = qtranxf_get_language_date_or_time_format( 'date_format' );
-    return qtranxf_convertFormat( $format, $default_format );
+function qtranxf_convertDateFormat($format)
+{
+    _deprecated_function(__FUNCTION__, '3.13.0', 'qtranxf_get_language_date_or_time_format');
+    $default_format = qtranxf_get_language_date_or_time_format('date_format');
+    return qtranxf_convertFormat($format, $default_format);
 }
 
 /**
@@ -376,10 +386,11 @@ function qtranxf_convertDateFormat( $format ) {
  * @return string
  * @deprecated Use qtranxf_get_language_date_or_time_format.
  */
-function qtranxf_convertTimeFormat( $format ) {
-    _deprecated_function( __FUNCTION__, '3.13.0', 'qtranxf_get_language_date_or_time_format' );
-    $default_format = qtranxf_get_language_date_or_time_format( 'time_format' );
-    return qtranxf_convertFormat( $format, $default_format );
+function qtranxf_convertTimeFormat($format)
+{
+    _deprecated_function(__FUNCTION__, '3.13.0', 'qtranxf_get_language_date_or_time_format');
+    $default_format = qtranxf_get_language_date_or_time_format('time_format');
+    return qtranxf_convertFormat($format, $default_format);
 }
 
 /**
@@ -395,71 +406,72 @@ function qtranxf_convertTimeFormat( $format ) {
  * @deprecated Use qxtranxf_intl_strftime, since strftime is deprecated from PHP8.1.
  * @See https://www.php.net/manual/en/function.strftime.php
  */
-function qtranxf_strftime( $format, $date, $default = '', $before = '', $after = '' ) {
-    _deprecated_function( __FUNCTION__, '3.13.0', 'qxtranxf_intl_strftime' );
+function qtranxf_strftime($format, $date, $default = '', $before = '', $after = '')
+{
+    _deprecated_function(__FUNCTION__, '3.13.0', 'qxtranxf_intl_strftime');
 
-    if ( empty( $format ) ) {
+    if (empty($format)) {
         return $default;
     }
 
     // add date suffix ability (%q) to strftime
-    $day     = intval( ltrim( strftime( "%d", $date ), '0' ) );
-    $search  = array();
-    $replace = array();
+    $day = intval(ltrim(strftime("%d", $date), '0'));
+    $search = array ();
+    $replace = array ();
 
     // date S
     $search[] = '/(([^%])%q|^%q)/';
-    if ( $day == 1 || $day == 21 || $day == 31 ) {
+    if ($day == 1 || $day == 21 || $day == 31) {
         $replace[] = '$2st';
-    } elseif ( $day == 2 || $day == 22 ) {
+    } elseif ($day == 2 || $day == 22) {
         $replace[] = '$2nd';
-    } elseif ( $day == 3 || $day == 23 ) {
+    } elseif ($day == 3 || $day == 23) {
         $replace[] = '$2rd';
     } else {
         $replace[] = '$2th';
     }
 
-    $search[]  = '/(([^%])%E|^%E)/';
+    $search[] = '/(([^%])%E|^%E)/';
     $replace[] = '${2}' . $day; // date j
-    $search[]  = '/(([^%])%f|^%f)/';
-    $replace[] = '${2}' . date( 'w', $date ); // date w
-    $search[]  = '/(([^%])%F|^%F)/';
-    $replace[] = '${2}' . date( 'z', $date ); // date z
-    $search[]  = '/(([^%])%i|^%i)/';
-    $replace[] = '${2}' . date( 'n', $date ); // date n
-    $search[]  = '/(([^%])%J|^%J)/';
-    $replace[] = '${2}' . date( 't', $date ); // date t
-    $search[]  = '/(([^%])%k|^%k)/';
-    $replace[] = '${2}' . date( 'L', $date ); // date L
-    $search[]  = '/(([^%])%K|^%K)/';
-    $replace[] = '${2}' . date( 'B', $date ); // date B
-    $search[]  = '/(([^%])%l|^%l)/';
-    $replace[] = '${2}' . date( 'g', $date ); // date g
-    $search[]  = '/(([^%])%L|^%L)/';
-    $replace[] = '${2}' . date( 'G', $date ); // date G
-    $search[]  = '/(([^%])%N|^%N)/';
-    $replace[] = '${2}' . date( 'u', $date ); // date u
-    $search[]  = '/(([^%])%Q|^%Q)/';
-    $replace[] = '${2}' . date( 'e', $date ); // date e
-    $search[]  = '/(([^%])%o|^%o)/';
-    $replace[] = '${2}' . date( 'I', $date ); // date I
-    $search[]  = '/(([^%])%O|^%O)/';
-    $replace[] = '${2}' . date( 'O', $date ); // date O
-    $search[]  = '/(([^%])%s|^%s)/';
-    $replace[] = '${2}' . date( 'P', $date ); // date P
-    $search[]  = '/(([^%])%v|^%v)/';
-    $replace[] = '${2}' . date( 'T', $date ); // date T
-    $search[]  = '/(([^%])%1|^%1)/';
-    $replace[] = '${2}' . date( 'Z', $date ); // date Z
-    $search[]  = '/(([^%])%2|^%2)/';
-    $replace[] = '${2}' . date( 'c', $date ); // date c
-    $search[]  = '/(([^%])%3|^%3)/';
-    $replace[] = '${2}' . date( 'r', $date ); // date r
-    $search[]  = '/(([^%])%4|^%4)/';
+    $search[] = '/(([^%])%f|^%f)/';
+    $replace[] = '${2}' . date('w', $date); // date w
+    $search[] = '/(([^%])%F|^%F)/';
+    $replace[] = '${2}' . date('z', $date); // date z
+    $search[] = '/(([^%])%i|^%i)/';
+    $replace[] = '${2}' . date('n', $date); // date n
+    $search[] = '/(([^%])%J|^%J)/';
+    $replace[] = '${2}' . date('t', $date); // date t
+    $search[] = '/(([^%])%k|^%k)/';
+    $replace[] = '${2}' . date('L', $date); // date L
+    $search[] = '/(([^%])%K|^%K)/';
+    $replace[] = '${2}' . date('B', $date); // date B
+    $search[] = '/(([^%])%l|^%l)/';
+    $replace[] = '${2}' . date('g', $date); // date g
+    $search[] = '/(([^%])%L|^%L)/';
+    $replace[] = '${2}' . date('G', $date); // date G
+    $search[] = '/(([^%])%N|^%N)/';
+    $replace[] = '${2}' . date('u', $date); // date u
+    $search[] = '/(([^%])%Q|^%Q)/';
+    $replace[] = '${2}' . date('e', $date); // date e
+    $search[] = '/(([^%])%o|^%o)/';
+    $replace[] = '${2}' . date('I', $date); // date I
+    $search[] = '/(([^%])%O|^%O)/';
+    $replace[] = '${2}' . date('O', $date); // date O
+    $search[] = '/(([^%])%s|^%s)/';
+    $replace[] = '${2}' . date('P', $date); // date P
+    $search[] = '/(([^%])%v|^%v)/';
+    $replace[] = '${2}' . date('T', $date); // date T
+    $search[] = '/(([^%])%1|^%1)/';
+    $replace[] = '${2}' . date('Z', $date); // date Z
+    $search[] = '/(([^%])%2|^%2)/';
+    $replace[] = '${2}' . date('c', $date); // date c
+    $search[] = '/(([^%])%3|^%3)/';
+    $replace[] = '${2}' . date('r', $date); // date r
+    $search[] = '/(([^%])%4|^%4)/';
     $replace[] = '${2}' . $date; // date U
-    $format    = preg_replace( $search, $replace, $format );
+    $format = preg_replace($search, $replace, $format);
 
-    return $before . strftime( $format, $date ) . $after;
+    return $before . strftime($format, $date) . $after;
 }
 
 /**
@@ -473,18 +485,20 @@ function qtranxf_strftime( $format, $date, $default = '', $before = '', $after =
  *
  * @return string
  */
-function qtranxf_format_date( $format, $mysql_time, $default_value, $before = '', $after = '' ) {
-    if ( ! empty( $before ) || ! empty( $after ) ) {
-        _deprecated_argument( __FUNCTION__, '3.13.0' );
+function qtranxf_format_date($format, $mysql_time, $default_value, $before = '', $after = '')
+{
+    if (!empty($before) || !empty($after)) {
+        _deprecated_argument(__FUNCTION__, '3.13.0');
     }
-    $timestamp = mysql2date( 'U', $mysql_time );
-    if ( $format == 'U' ) {
+    $timestamp = mysql2date('U', $mysql_time);
+    if ($format == 'U') {
         return $timestamp;
     }
-    $language_format = qtranxf_get_language_date_or_time_format( 'date_format' );
+    $language_format = qtranxf_get_language_date_or_time_format('date_format');
     // TODO: abandon strftime format in qTranslate.
-    $date_format = qtranxf_convert_to_strftime_format_using_config( $format, $language_format );
-    return ( ! empty( $date_format ) ? qxtranxf_intl_strftime( $date_format, $timestamp, get_locale() ) : $default_value );
+    $date_format = qtranxf_convert_to_strftime_format_using_config($format, $language_format);
+
+    return (!empty($date_format) ? qxtranxf_intl_strftime($date_format, $timestamp, get_locale()) : $default_value);
 }
 
 /**
@@ -498,86 +512,93 @@ function qtranxf_format_date( $format, $mysql_time, $default_value, $before = ''
  *
  * @return string
  */
-function qtranxf_format_time( $format, $mysql_time, $default_value, $before = '', $after = '' ) {
-    if ( ! empty( $before ) || ! empty( $after ) ) {
-        _deprecated_argument( __FUNCTION__, '3.13.0' );
+function qtranxf_format_time($format, $mysql_time, $default_value, $before = '', $after = '')
+{
+    if (!empty($before) || !empty($after)) {
+        _deprecated_argument(__FUNCTION__, '3.13.0');
     }
-    $timestamp = mysql2date( 'U', $mysql_time );
-    if ( $format == 'U' ) {
+    $timestamp = mysql2date('U', $mysql_time);
+    if ($format == 'U') {
         return $timestamp;
     }
-    $language_format = qtranxf_get_language_date_or_time_format( 'time_format' );
+    $language_format = qtranxf_get_language_date_or_time_format('time_format');
     // TODO: abandon strftime format in qTranslate.
-    $date_format = qtranxf_convert_to_strftime_format_using_config( $format, $language_format );
-    return ( ! empty( $date_format ) ? qxtranxf_intl_strftime( $date_format, $timestamp, get_locale() ) : $default_value );
+    $date_format = qtranxf_convert_to_strftime_format_using_config($format, $language_format);
+    return (!empty($date_format) ? qxtranxf_intl_strftime($date_format, $timestamp, get_locale()) : $default_value);
 }
 
 // @see get_the_date
-function qtranxf_dateFromPostForCurrentLanguage( $old_date, $format = '', $post = null ) {
-    $post = get_post( $post );
-    if ( ! $post ) {
+function qtranxf_dateFromPostForCurrentLanguage($old_date, $format = '', $post = null)
+{
+    $post = get_post($post);
+    if (!$post) {
         return $old_date;
     }
 
-    return qtranxf_format_date( $format, $post->post_date, $old_date );
+    return qtranxf_format_date($format, $post->post_date, $old_date);
 }
 
 // @see get_the_modified_date
-function qtranxf_dateModifiedFromPostForCurrentLanguage( $old_date, $format = '' ) {
+function qtranxf_dateModifiedFromPostForCurrentLanguage($old_date, $format = '')
+{
     global $post;
-    if ( ! $post ) {
+    if (!$post) {
         return $old_date;
     }
 
-    return qtranxf_format_date( $format, $post->post_modified, $old_date );
+    return qtranxf_format_date($format, $post->post_modified, $old_date);
 }
 
 // @see get_the_time
-function qtranxf_timeFromPostForCurrentLanguage( $old_date, $format = '', $post = null, $gmt = false ) {
-    $post = get_post( $post );
-    if ( ! $post ) {
+function qtranxf_timeFromPostForCurrentLanguage($old_date, $format = '', $post = null, $gmt = false)
+{
+    $post = get_post($post);
+    if (!$post) {
         return $old_date;
     }
     $post_date = $gmt ? $post->post_date_gmt : $post->post_date;
 
-    return qtranxf_format_time( $format, $post_date, $old_date );
+    return qtranxf_format_time($format, $post_date, $old_date);
 }
 
 // @see get_post_modified_time
-function qtranxf_timeModifiedFromPostForCurrentLanguage( $old_date, $format = '', $gmt = false ) {
+function qtranxf_timeModifiedFromPostForCurrentLanguage($old_date, $format = '', $gmt = false)
+{
     global $post;
-    if ( ! $post ) {
+    if (!$post) {
         return $old_date;
     }
     $post_date = $gmt ? $post->post_modified_gmt : $post->post_modified;
 
-    return qtranxf_format_time( $format, $post_date, $old_date );
+    return qtranxf_format_time($format, $post_date, $old_date);
 }
 
 // @see get_comment_date
-function qtranxf_dateFromCommentForCurrentLanguage( $old_date, $format, $comment = null ) {
-    if ( ! $comment ) {
+function qtranxf_dateFromCommentForCurrentLanguage($old_date, $format, $comment = null)
+{
+    if (!$comment) {
         global $comment;  // TODO drop obsolete compatibility with older WP
     }
-    if ( ! $comment ) {
+    if (!$comment) {
         return $old_date;
     }
 
-    return qtranxf_format_date( $format, $comment->comment_date, $old_date );
+    return qtranxf_format_date($format, $comment->comment_date, $old_date);
 }
 
 // @see get_comment_time
-function qtranxf_timeFromCommentForCurrentLanguage( $old_date, $format = '', $gmt = false, $translate = true, $comment = null ) {
-    if ( ! $translate ) {
+function qtranxf_timeFromCommentForCurrentLanguage($old_date, $format = '', $gmt = false, $translate = true, $comment = null)
+{
+    if (!$translate) {
         return $old_date;
     }
-    if ( ! $comment ) {
+    if (!$comment) {
         global $comment; // TODO drop obsolete compatibility with older WP
     }
-    if ( ! $comment ) {
+    if (!$comment) {
         return $old_date;
     }
     $comment_date = $gmt ? $comment->comment_date_gmt : $comment->comment_date;
 
-    return qtranxf_format_time( $format, $comment_date, $old_date );
+    return qtranxf_format_time($format, $comment_date, $old_date);
 }
