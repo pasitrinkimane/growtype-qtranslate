@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require_once( QTRANSLATE_DIR . '/admin/qtx_admin_modules.php' );
+require_once( QTRANSLATE_DIR . '/modules/qtx_admin_module_manager.php' );
 
 /**
  * Save language properties from configuration to WP options
@@ -116,25 +116,66 @@ function qtranxf_load_config_files( $json_files ) {
         }
     }
 
-    $cfg_all = array();
+    $cfg_all               = [ 'admin-config' => [], 'front-config' => [] ];
+    $main_keys             = array_keys( $cfg_all );
+    $deprecated_js_configs = [];
+
     foreach ( $json_files as $config_file ) {
         $cfg_json = file_get_contents( $config_file );
-        if ( $cfg_json ) {
-            $cfg = json_decode( $cfg_json, true );
-            if ( ! empty( $cfg ) && is_array( $cfg ) ) {
-                $cfg_all = qtranxf_merge_config( $cfg_all, $cfg );
-            } else {
-                qtranxf_error_log( sprintf( __( 'Could not parse %s file "%s" listed in option "%s".', 'qtranslate' ), 'JSON', '<strong>' . $config_file . '</strong>', '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">' . __( 'Configuration Files', 'qtranslate' ) . '</a>' ) . ' ' . __( 'Please, correct the syntax error in the file.', 'qtranslate' ) . ' ' . sprintf( __( 'Once the problem is fixed, re-save the configuration by pressing button "%s" on plugin %ssettings page%s.', 'qtranslate' ), __( 'Save Changes', 'qtranslate' ), '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">', '</a>' ) );
-            }
-        } else {
+        if ( ! $cfg_json ) {
             qtranxf_error_log( sprintf( __( 'Could not load file "%s" listed in option "%s".', 'qtranslate' ), '<strong>' . $config_file . '</strong>', '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">' . __( 'Configuration Files', 'qtranslate' ) . '</a>' ) . ' ' . __( 'Please, make sure the file is accessible and readable.', 'qtranslate' ) . ' ' . sprintf( __( 'Once the problem is fixed, re-save the configuration by pressing button "%s" on plugin %ssettings page%s.', 'qtranslate' ), __( 'Save Changes', 'qtranslate' ), '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">', '</a>' ) );
+            break;
         }
+        $cfg = json_decode( $cfg_json, true );
+        if ( empty( $cfg ) || ! is_array( $cfg ) ) {
+            qtranxf_error_log( sprintf( __( 'Could not parse %s file "%s" listed in option "%s".', 'qtranslate' ), 'JSON', '<strong>' . $config_file . '</strong>', '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">' . __( 'Configuration Files', 'qtranslate' ) . '</a>' ) . ' ' . __( 'Please, correct the syntax error in the file.', 'qtranslate' ) . ' ' . sprintf( __( 'Once the problem is fixed, re-save the configuration by pressing button "%s" on plugin %ssettings page%s.', 'qtranslate' ), __( 'Save Changes', 'qtranslate' ), '<a href="' . admin_url( 'options-general.php?page=qtranslate-xt#integration' ) . '">', '</a>' ) );
+            break;
+        }
+
+        // TODO: Remove check for deprecated keys in future versions
+        foreach ( $main_keys as $main_key ) {
+            if ( ! array_key_exists( $main_key, $cfg ) ) {
+                continue;
+            }
+            $main_config = $cfg[ $main_key ];
+            foreach ( $main_config as $page_config ) {
+                if ( isset( $page_config['js-conf'] ) ) {
+                    $deprecated_key = '"js-conf"';
+                    if ( ! isset( $deprecated_js_configs[ $deprecated_key ] ) ) {
+                        $deprecated_js_configs[ $deprecated_key ] = [];
+                    }
+                    $deprecated_js_configs[ $deprecated_key ][] = $config_file;
+                }
+                if ( isset( $page_config['js-exec'] ) ) {
+                    foreach ( $page_config['js-exec'] as $js_exec ) {
+                        if ( isset( $js_exec['javascript'] ) ) {
+                            $deprecated_key = '"javascript" (in "js-exec")';
+                            if ( ! isset( $deprecated_js_configs[ $deprecated_key ] ) ) {
+                                $deprecated_js_configs[ $deprecated_key ] = [];
+                            }
+                            $deprecated_js_configs[ $deprecated_key ][] = $config_file;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        $cfg_all = qtranxf_merge_config( $cfg_all, $cfg );
     }
-    if ( ! isset( $cfg_all['admin-config'] ) ) {
-        $cfg_all['admin-config'] = array();
-    }
-    if ( ! isset( $cfg_all['front-config'] ) ) {
-        $cfg_all['front-config'] = array();
+
+    if ( ! empty( $deprecated_js_configs ) ) {
+        $warning_files = [];
+        foreach ( $deprecated_js_configs as $deprecated_key => $deprecated_files ) {
+            $unique_files = array_unique( $deprecated_files );
+            foreach ( $unique_files as $file ) {
+                $warning_files[] = "$file : $deprecated_key";
+            }
+        }
+        $warning = sprintf( __( 'Deprecated configuration key(s) in %s:', 'qtranslate' ), 'qTranslate-XT' );
+        $warning .= '<pre>' . implode( '<br>', $warning_files ) . '</pre>';
+        $warning .= sprintf( __( 'This configuration will become incompatible in next releases. For more information, see: %s.', 'qtranslate' ), '<a href="https://github.com/qtranslate/qtranslate-xt/wiki/Custom-Javascript">Wiki Custom Javacsript</a>' );
+        qtranxf_add_warning( $warning );
     }
 
     return $cfg_all;
@@ -371,8 +412,15 @@ function qtranxf_load_config_all( $json_files, $custom_config ) {
     global $q_config;
     $nerr = isset( $q_config['url_info']['errors'] ) ? count( $q_config['url_info']['errors'] ) : 0;
     $cfg  = qtranxf_load_config_files( $json_files );
-    $cfg  = qtranxf_merge_config( $cfg, $custom_config );
-    $cfg  = qtranxf_standardize_i18n_config( $cfg );
+    if ( ! empty( $custom_config ) ) {
+        $warning = sprintf( __( 'Deprecated configuration key(s) in %s:', 'qtranslate' ), 'qTranslate-XT' );
+        $warning .= '<pre>"custom_i18n_config" (settings / integration)</pre>';
+        $warning .= sprintf( __( 'This configuration will become incompatible in next releases. For more information, see: %s.', 'qtranslate' ),
+            '<a href="https://github.com/qtranslate/qtranslate-xt/issues/1012">github</a>' );
+        qtranxf_add_warning( $warning );
+    }
+    $cfg = qtranxf_merge_config( $cfg, $custom_config );
+    $cfg = qtranxf_standardize_i18n_config( $cfg );
     // store the errors permanently until an admin fixes them,
     // otherwise admin may not realise that not all configurations are loaded.
     if ( ! empty( $q_config['url_info']['errors'] ) && $nerr != count( $q_config['url_info']['errors'] ) ) {
@@ -424,12 +472,12 @@ function qtranxf_search_config_files_theme( $theme = null ) {
     $found = array();
     while ( $theme && $theme->exists() ) {
         // external theme config
-        $config_file = $theme->theme_root . '/' . $theme->stylesheet . '/i18n-config.json';
+        $config_file = $theme->get_theme_root() . '/' . $theme->get_stylesheet() . '/i18n-config.json';
         if ( is_readable( $config_file ) ) {
             $found[] = $config_file;
         } else {
             // built-in theme config
-            $config_file = QTRANSLATE_DIR . '/i18n-config/themes/' . $theme->stylesheet . '/i18n-config.json';
+            $config_file = QTRANSLATE_DIR . '/i18n-config/themes/' . $theme->get_stylesheet() . '/i18n-config.json';
             if ( is_readable( $config_file ) ) {
                 $found[] = $config_file;
             }
@@ -464,15 +512,6 @@ function qtranxf_normalize_config_files( $file_paths ) {
     }
 
     return $file_paths;
-}
-
-/**
- * @since 3.5.5
- */
-function qtranxf_find_plugin_by_folder( $fld, $plugins ) {
-    _deprecated_function( __FUNCTION__, '3.7.3' );
-
-    return null;
 }
 
 /**
@@ -603,12 +642,6 @@ function qtranxf_update_config_files() {
     qtranxf_update_config_options( $config_files, $changed );
 }
 
-function qtranxf_find_plugin_file( $fp ) {
-    _deprecated_function( __FUNCTION__, '3.7.3' );
-
-    return null;
-}
-
 function qtranxf_on_switch_theme( $new_name, $new_theme ) {
     $config_files = qtranxf_get_option_config_files();
     $changed      = false;
@@ -633,15 +666,6 @@ function qtranxf_on_switch_theme( $new_name, $new_theme ) {
 }
 
 add_action( 'switch_theme', 'qtranxf_on_switch_theme', 10, 2 );
-
-function qtranxf_find_plugin_config_files( &$fn_bnm, &$fn_qtx, $bnm ) {
-    _deprecated_function( __FUNCTION__, '3.7.3', 'qtranxf_find_plugin_config_file()' );
-
-    $fn_bnm = qtranxf_find_plugin_config_file( $bnm );
-    $fn_qtx = null;
-
-    return $fn_bnm;
-}
 
 /**
  * Search for i18n-config.json files for regular plugins
@@ -729,13 +753,12 @@ function qtranxf_clear_debug_log() {
     }
 }
 
-
 function qtranxf_activation_hook() {
     qtranxf_clear_debug_log();
-    if ( version_compare( PHP_VERSION, '5.4' ) < 0 ) {
+    if ( version_compare( PHP_VERSION, '5.5' ) < 0 ) {
         // Deactivate ourself
         load_plugin_textdomain( 'qtranslate', false, basename( QTRANSLATE_DIR ) . '/lang' );
-        $msg = sprintf( __( 'Plugin %s requires PHP version %s at least. This server instance runs PHP version %s. A PHP version %s or higher is recommended. The plugin has not been activated.', 'qtranslate' ), qtranxf_get_plugin_link(), '5.4', PHP_VERSION, '7.3' );
+        $msg = sprintf( __( 'Plugin %s requires PHP version %s at least. This server instance runs PHP version %s. A PHP version %s or higher is recommended. The plugin has not been activated.', 'qtranslate' ), qtranxf_get_plugin_link(), '5.5', PHP_VERSION, '8.1' );
         deactivate_plugins( plugin_basename( QTRANSLATE_FILE ) );
         wp_die( $msg );
     }
@@ -747,19 +770,23 @@ function qtranxf_activation_hook() {
     if ( is_plugin_active( 'mqtranslate/mqtranslate.php' ) ) {
         qtranxf_admin_notice_deactivate_plugin( 'mqTranslate', 'mqtranslate/mqtranslate.php' );
     }
-
     if ( is_plugin_active( 'qtranslate/qtranslate.php' ) ) {
         update_option( 'qtranslate_qtrans_compatibility', '1' );
         qtranxf_admin_notice_deactivate_plugin( 'qTranslate', 'qtranslate/qtranslate.php' );
     }
-
     if ( is_plugin_active( 'qtranslate-xp/ppqtranslate.php' ) ) {
         qtranxf_admin_notice_deactivate_plugin( 'qTranslate Plus', 'qtranslate-xp/ppqtranslate.php' );
     }
-
     if ( is_plugin_active( 'ztranslate/ztranslate.php' ) ) {
         qtranxf_admin_notice_deactivate_plugin( 'zTranslate', 'ztranslate/ztranslate.php' );
     }
+    if ( is_plugin_active( 'qtranslate-x/qtranslate.php' ) ) {
+        qtranxf_admin_notice_deactivate_plugin( 'qTranslate-X', 'qtranslate-x/qtranslate.php' );
+    }
+
+    // Migrate (rename/import) legacy options, temporary transitions during evolutions.
+    qtranxf_rename_legacy_option( 'qtranslate_modules', QTX_OPTIONS_MODULES_STATE );
+    qtranxf_import_legacy_option( 'acf_qtranslate', QTX_OPTIONS_MODULE_ACF, false );
 
     $ts                     = time();
     $next_thanks            = get_option( 'qtranslate_next_thanks' );
@@ -803,7 +830,13 @@ function qtranxf_activation_hook() {
         qtranxf_update_option_admin_notices( $messages, 'gutenberg-support', false );
     }
 
-    QTX_Admin_Modules::update_modules_status();
+    // To initialize the modules state we need the default enabled modules but the `q_config` has not been loaded yet.
+    // For the first activation, the default options are used.
+    // After reactivation the enabled modules are reloaded, but all the conditions are checked with all plugins again.
+    global $qtranslate_options;
+    qtranxf_admin_set_default_options( $qtranslate_options );
+    qtranxf_load_option_array( 'admin_enabled_modules', $qtranslate_options['admin']['admin_enabled_modules'] );
+    QTX_Admin_Module_Manager::update_modules_state();
 
     /**
      * A chance to execute activation actions specifically for this plugin.
@@ -880,28 +913,52 @@ function qtranxf_admin_notices_gutenberg() {
     }
     qtranxf_admin_notice_dismiss_script();
     ?>
-    <div class="notice notice-warning qtranxs-notice-ajax is-dismissible" id="qtranxs-gutenberg-support"">
-    <p><?php printf( __( '<b>Caution!</b> The block editor (Gutenberg) is supported only recently in %s with some limitations. Use at your own discretion!', 'qtranslate' ), 'qTranslate&#8209;XT' ); ?></p>
-    <p><?php printf( __( 'Currently only the single language edit mode is supported. For more details, please read carefully our <a href="%s">Gutenberg FAQ</a>.', 'qtranslate' ), 'https://github.com/qtranslate/qtranslate-xt/wiki/FAQ#gutenberg' ); ?></p>
-    <?php if ( ! qtranxf_is_classic_editor_supported() ):
-        $link_classic = admin_url( 'plugin-install.php?tab=plugin-information&plugin=classic-editor' );
-        $link_plugins = admin_url( 'plugins.php' ); ?>
-        <p><?php printf( __( 'It is recommended to install the <a href="%s">%s</a> in your <a href="%s">plugins</a>.', 'qtranslate' ), $link_classic, 'Classic Editor', $link_plugins ); ?></p>
-    <?php endif; ?>
-    <p>
-        <a class="button qtranxs-notice-dismiss"
-           href="javascript:void(0);"><?php _e( 'I have already done it, dismiss this message.', 'qtranslate' ); ?></a>
-    </p>
+    <div class="notice notice-warning qtranxs-notice-ajax is-dismissible" id="qtranxs-gutenberg-support">
+        <p><?php printf( __( '<b>Caution!</b> The block editor (Gutenberg) is supported only recently in %s with some limitations. Use at your own discretion!', 'qtranslate' ), 'qTranslate&#8209;XT' ); ?></p>
+        <p><?php printf( __( 'Currently only the single language edit mode is supported. For more details, please read carefully our <a href="%s">Gutenberg FAQ</a>.', 'qtranslate' ), 'https://github.com/qtranslate/qtranslate-xt/wiki/FAQ#gutenberg' ); ?></p>
+        <?php if ( ! qtranxf_is_classic_editor_supported() ):
+            $link_classic = admin_url( 'plugin-install.php?tab=plugin-information&plugin=classic-editor' );
+            $link_plugins = admin_url( 'plugins.php' ); ?>
+            <p><?php printf( __( 'It is recommended to install the <a href="%s">%s</a> in your <a href="%s">plugins</a>.', 'qtranslate' ), $link_classic, 'Classic Editor', $link_plugins ); ?></p>
+        <?php endif; ?>
+        <p>
+            <a class="button qtranxs-notice-dismiss"
+               href="javascript:void(0);"><?php _e( 'I have already done it, dismiss this message.', 'qtranslate' ); ?></a>
+        </p>
     </div>
     <?php
 }
 
 add_action( 'admin_notices', 'qtranxf_admin_notices_gutenberg' );
 
-function qtranxf_admin_notice_deactivate_plugin( $nm, $plugin ) {
+function qtranxf_admin_notices_slugs_migrate() {
+    if ( qtranxf_check_admin_notice( 'slugs-migrate' ) || ! QTX_Module_Loader::is_module_active( 'slugs' ) ) {
+        return;
+    }
+    $old_value = get_option( 'qts_options' );  // Very quick check to avoid loading more code.
+    if ( ! $old_value ) {
+        return;
+    }
+    require_once( QTRANSLATE_DIR . '/modules/slugs/admin/slugs-migrate-qts.php' );
+    $msg = qtranxf_slugs_check_migrate_qts();  // More advanced checks with QTS meta.
+    if ( empty( $msg ) ) {
+        return;
+    }
+    qtranxf_admin_notice_dismiss_script();
+    echo '<div class="notice notice-warning qtranxs-notice-ajax is-dismissible" id="qtranxs-slugs-migrate"><p>';
+    $options_link = admin_url( 'options-general.php?page=qtranslate-xt#import' );
+    echo '<p>' . sprintf( __( '%s : found slugs meta that can be migrated. Go to the <a href="%s">import settings</a> to migrate.', 'qtranslate' ), qtranxf_get_plugin_link(), $options_link ) . '</p>';
+    echo '<p>' . $msg . '</p>';
+    echo '</p><p><a class="button qtranxs-notice-dismiss" href="javascript:void(0);">' . __( 'I have already done it, dismiss this message.', 'qtranslate' );
+    echo '</a></p></div>';
+}
+
+add_action( 'admin_notices', 'qtranxf_admin_notices_slugs_migrate' );
+
+function qtranxf_admin_notice_deactivate_plugin( $name, $plugin ) {
     deactivate_plugins( $plugin, true );
     $d        = dirname( $plugin );
-    $link     = '<a href="https://wordpress.org/plugins/' . $d . '/" target="_blank">' . $nm . '</a>';
+    $link     = '<a href="https://wordpress.org/plugins/' . $d . '/" target="_blank">' . $name . '</a>';
     $qtxnm    = 'qTranslate&#8209;XT';
     $qtxlink  = qtranxf_get_plugin_link();
     $imported = false;
@@ -917,9 +974,9 @@ function qtranxf_admin_notice_deactivate_plugin( $nm, $plugin ) {
     $s   = '</p><p>' . sprintf( __( 'It might be a good idea to review %smigration instructions%s, if you have not yet done so.', 'qtranslate' ), '<a href="https://github.com/qtranslate/qtranslate-xt/wiki/Migration-Guide/" target="_blank">', '</a>' ) . '</p><p><a class="button" href="">';
     $msg = sprintf( __( 'Activation of plugin %s deactivated plugin %s since they cannot run simultaneously.', 'qtranslate' ), $qtxlink, $link ) . ' ';
     if ( $imported ) {
-        $msg .= sprintf( __( 'The compatible settings from %s have been imported to %s. Further tuning, import, export and reset of options can be done at Settings/Languages configuration page, once %s is running.%sContinue%s', 'qtranslate' ), $nm, $qtxnm, $qtxnm, $s, '</a>' );
+        $msg .= sprintf( __( 'The compatible settings from %s have been imported to %s. Further tuning, import, export and reset of options can be done at Settings/Languages configuration page, once %s is running.%sContinue%s', 'qtranslate' ), $name, $qtxnm, $qtxnm, $s, '</a>' );
     } else {
-        $msg .= sprintf( __( 'You may import/export compatible settings from %s to %s on Settings/Languages configuration page, once %s is running.%sContinue%s', 'qtranslate' ), $nm, $qtxnm, $qtxnm, $s, '</a>' );
+        $msg .= sprintf( __( 'You may import/export compatible settings from %s to %s on Settings/Languages configuration page, once %s is running.%sContinue%s', 'qtranslate' ), $name, $qtxnm, $qtxnm, $s, '</a>' );
     }
     wp_die( '<p>' . $msg . '</p>' );
 }
@@ -994,6 +1051,14 @@ function qtranxf_update_option_admin_notices( $messages, $id, $set = true ) {
     return $messages;
 }
 
+/**
+ * Update an admin notice to be set (hidden) / unset (shown).
+ *
+ * @param string $id
+ * @param bool $set true to set the message as seen (hide), false to unset (show)
+ *
+ * @return array|mixed
+ */
 function qtranxf_update_admin_notice( $id, $set ) {
     $messages = get_option( 'qtranslate_admin_notices', array() );
 
@@ -1017,7 +1082,7 @@ function qtranxf_admin_notice_dismiss_script() {
         return;
     }
     $admin_notice_dismiss_script = true;
-    wp_register_script( 'qtx_admin_notices', plugins_url( 'js/notices.js', __FILE__ ), array( 'jquery' ), QTX_VERSION );
+    wp_register_script( 'qtx_admin_notices', plugins_url( 'dist/notices.js', QTRANSLATE_FILE ), array( 'jquery' ), QTX_VERSION );
     wp_enqueue_script( 'qtx_admin_notices' );
 }
 
@@ -1026,5 +1091,5 @@ function qtranxf_register_activation_hooks() {
     $qtx_plugin_basename = plugin_basename( QTRANSLATE_FILE );
     register_activation_hook( $qtx_plugin_basename, 'qtranxf_activation_hook' );
     register_deactivation_hook( $qtx_plugin_basename, 'qtranxf_deactivation_hook' );
-    QTX_Admin_Modules::register_hooks();
+    QTX_Admin_Module_Manager::register_hooks();
 }

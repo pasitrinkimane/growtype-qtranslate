@@ -6,7 +6,9 @@
     "post": {
       "pages": {
         "post.php": "",
-        "post-new.php": ""
+        "post-new.php": "",
+        "term.php": "",
+        "edit-tags.php": "action=edit"
       },
       "anchors": {
         "post-body-content": {
@@ -54,11 +56,39 @@
               "encode": "display"
             }
           }
-        }
-      },
-      "js-exec": {
-        "post-exec": {
-          "src": "./admin/js/post-exec.min.js"
+        },
+        "document": {
+          "fields": {
+            "yoast_wpseo_title": {
+              "encode": "{"
+            },
+            "yoast_wpseo_metadesc": {
+              "encode": "{"
+            },
+            "yoast_wpseo_focuskw": {
+              "encode": "{"
+            },
+            "yoast_wpseo_metakeywords": {},
+            "hidden_wpseo_title": {
+              "encode": "{"
+            },
+            "hidden_wpseo_desc": {
+              "encode": "{"
+            },
+            "wpseo_metakey": {
+              "encode": "{"
+            },
+            "wpseo_canonical": {
+              "encode": "{"
+            },
+            "img-alt": {
+              "jquery": "img",
+              "attrs": [
+                "alt"
+              ],
+              "encode": "display"
+            }
+          }
         }
       }
     },
@@ -103,11 +133,6 @@
               "encode": "display"
             }
           }
-        }
-      },
-      "js-exec": {
-        "widgets-exec": {
-          "src": "./admin/js/widgets-exec.min.js"
         }
       }
     },
@@ -168,11 +193,6 @@
             }
           }
         }
-      },
-      "js-exec": {
-        "edit-tags-exec": {
-          "src": "./admin/js/edit-tags-exec.min.js"
-        }
       }
     },
     "nav-menus": {
@@ -218,11 +238,6 @@
             }
           }
         }
-      },
-      "js-exec": {
-        "nav-menus-exec": {
-          "src": "./admin/js/nav-menus-exec.min.js"
-        }
       }
     },
     "all-pages": {
@@ -237,6 +252,11 @@
     "all-pages": {
       "filters": {
         "text": {
+          "wpseo_title": "20",
+          "wpseo_meta": "20",
+          "wpseo_metadesc": "20",
+          "wpseo_metakeywords": "20",
+          "wpseo_replacements": "20",
           "widget_title": "20",
           "widget_text": "20",
           "the_title": "20",

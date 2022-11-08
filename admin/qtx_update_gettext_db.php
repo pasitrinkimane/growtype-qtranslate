@@ -3,13 +3,18 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+function qtranxf_updateGettextDatabasesEx( $force = false, $only_for_language = '' ) {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_update_gettext_databases_ex' );
+    qtranxf_update_gettext_databases_ex( $force, $only_for_language );
+}
+
 /**
  * return 'true', if no update needed,
  * or 'false', if update is impossible to do,
  * or 0, if all languages were updated successfully,
  * or positive integer number of errors occurred on languages update.
  */
-function qtranxf_updateGettextDatabasesEx( $force = false, $only_for_language = '' ) {
+function qtranxf_update_gettext_databases_ex( $force = false, $only_for_language = '' ) {
     global $q_config;
 
     if ( $only_for_language && ! qtranxf_isEnabled( $only_for_language ) ) {
@@ -76,7 +81,7 @@ function qtranxf_updateGettextDatabasesEx( $force = false, $only_for_language = 
 
         if ( is_wp_error( $res ) ) {
             qtranxf_add_warning( sprintf( __( 'Failed to update gettext database for "%s": %s', 'qtranslate' ), $q_config['language_name'][ $lang ], $res->get_error_message() ) );
-            ++ $errcnt;
+            ++$errcnt;
         }
     }
 

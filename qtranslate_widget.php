@@ -41,7 +41,7 @@ class qTranslateXWidget extends WP_Widget {
 
     function widget( $args, $instance ) {
         if ( ! isset( $instance['widget-css-off'] ) ) {
-            echo '<style type="text/css">' . PHP_EOL;
+            echo '<style>' . PHP_EOL;
             echo empty( $instance['widget-css'] ) ? QTX_WIDGET_CSS : $instance['widget-css'];
             echo '</style>' . PHP_EOL;
         }
@@ -246,8 +246,6 @@ function qtranxf_generateLanguageSelectCode( $args = array(), $id = '' ) {
                         $classes[] = 'active';
                     }
                     echo '<li class="' . implode( ' ', $classes ) . '"><a href="' . qtranxf_convertURL( $url, $language, false, true ) . '"';
-                    // set hreflang
-                    echo ' hreflang="' . $language . '"';
                     echo ' title="' . $alt . '"';
                     if ( $type == 'image' ) {
                         echo ' class="qtranxs_image qtranxs_image_' . $language . '"';
@@ -259,7 +257,7 @@ function qtranxf_generateLanguageSelectCode( $args = array(), $id = '' ) {
                     }
                     echo '>';
                     if ( $type == 'image' ) {
-                        echo '<img src="' . $flag_location . $q_config['flag'][ $language ] . '" alt="' . $alt . '" />';
+                        echo '<img class="qtranxs-flag" src="' . $flag_location . $q_config['flag'][ $language ] . '" alt="' . $alt . '" />';
                     }
                     echo '<span';
                     if ( $type == 'image' || $type == 'css_only' ) {
@@ -270,7 +268,7 @@ function qtranxf_generateLanguageSelectCode( $args = array(), $id = '' ) {
                 }
 
                 if ( $type == 'dropdown' ) {
-                    echo '<script type="text/javascript">' . PHP_EOL . '// <![CDATA[' . PHP_EOL;
+                    echo '<script>' . PHP_EOL . '// <![CDATA[' . PHP_EOL;
                     echo "var lc = document.getElementById('" . $id . "');" . PHP_EOL;
                     echo "var s = document.createElement('select');" . PHP_EOL;
                     echo "s.id = 'qtranxs_select_" . $id . "';" . PHP_EOL;
@@ -295,7 +293,7 @@ function qtranxf_generateLanguageSelectCode( $args = array(), $id = '' ) {
                         echo ' class="active"';
                     }
                     echo '><a href="' . qtranxf_convertURL( $url, $language, false, true ) . '"';
-                    echo ' class="qtranxs_flag_' . $language . ' qtranxs_flag_and_text" title="' . $alt . '">';
+                    echo ' class="qtranxs_flag qtranxs_flag_' . $language . ' qtranxs_flag_and_text" title="' . $alt . '">';
                     echo '<span>' . $q_config['language_name'][ $language ] . '</span></a></li>' . PHP_EOL;
                 }
             }
@@ -323,7 +321,7 @@ function qtranxf_generateLanguageSelectCode( $args = array(), $id = '' ) {
                     $s       = $flag_location . $q_config['flag'][ $language ];
                     $n       = $q_config['language_name'][ $language ];
                     $content = $format;
-                    $content = str_replace( '%f', '<img src="' . $s . '" alt="' . $alt . '" />', $content );
+                    $content = str_replace( '%f', '<img class="qtranxs-flag" src="' . $s . '" alt="' . $alt . '" />', $content );
                     $content = str_replace( '%s', $s, $content );
                     $content = str_replace( '%n', $n, $content );
                     if ( strpos( $content, '%a' ) !== false ) {

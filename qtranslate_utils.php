@@ -16,24 +16,6 @@ function qtranxf_translate_wp( $string ) {
 }
 
 /**
- * @since 3.3.8.8
- */
-function qtranxf_plugin_basename() {
-    _deprecated_function( __FUNCTION__, '3.7.3', 'plugin_basename( QTRANSLATE_FILE )' );
-
-    return plugin_basename( QTRANSLATE_FILE );
-}
-
-/**
- * @since 3.3.2
- */
-function qtranxf_plugin_dirname() {
-    _deprecated_function( __FUNCTION__, '3.7.3', 'dirname( QTRANSLATE_DIR )' );
-
-    return dirname( QTRANSLATE_DIR );
-}
-
-/**
  * Compose path to a plugin folder relative to WP_CONTENT_DIR.
  * Takes into account linked folders in the path.
  * Works for plugin paths only. No trailing slash in the return string.
@@ -62,7 +44,7 @@ function qtranxf_dir_from_wp_content( $plugin ) {
 
     $i = 0;
     while ( $i < $plugin_len && $i < $content_len && $plugin_dir[ $i ] == $content_dir[ $i ] ) {
-        ++ $i;
+        ++$i;
     }
     if ( $i == $content_len ) {
         return substr( $plugin_dir, $content_len );
@@ -73,7 +55,7 @@ function qtranxf_dir_from_wp_content( $plugin ) {
 
     $content_dir = substr( $content_dir, $i );
     $plugin_dir  = substr( $plugin_dir, $i );
-    for ( $i = substr_count( $content_dir, '/' ); -- $i >= 0; ) {
+    for ( $i = substr_count( $content_dir, '/' ); --$i >= 0; ) {
         $plugin_dir = '../' . $plugin_dir;
     }
 
@@ -187,9 +169,6 @@ function qtranxf_copy_url_info( $urlinfo ) {
     if ( isset( $urlinfo['path-base'] ) ) {
         $copy['path-base'] = $urlinfo['path-base'];
     }
-    if ( isset( $urlinfo['path-base-length'] ) ) {
-        $copy['path-base-length'] = $urlinfo['path-base-length'];
-    }
     if ( isset( $urlinfo['wp-path'] ) ) {
         $copy['wp-path'] = $urlinfo['wp-path'];
     }
@@ -208,11 +187,8 @@ function qtranxf_copy_url_info( $urlinfo ) {
 
 function qtranxf_get_address_info( $url ) {
     $info = qtranxf_parseURL( $url );
-    if ( isset( $info['path'] ) ) {
-        $info['path-length'] = strlen( $info['path'] );
-    } else {
-        $info['path']        = '';
-        $info['path-length'] = 0;
+    if ( ! isset( $info['path'] ) ) {
+        $info['path'] = '';
     }
 
     return $info;
@@ -246,57 +222,53 @@ function qtranxf_get_url_info( $url ) {
     return $urlinfo;
 }
 
+/**
+ * Complete urlinfo with 'path-base' according to home and site info.
+ * If they differ, 'doing_front_end' might be set.
+ *
+ * @param array $urlinfo
+ */
 function qtranxf_complete_url_info( &$urlinfo ) {
     if ( ! isset( $urlinfo['path'] ) ) {
         $urlinfo['path'] = '';
     }
-    $path          = &$urlinfo['path'];
-    $home_info     = qtranxf_get_home_info();
-    $site_info     = qtranxf_get_site_info();
-    $home_path     = $home_info['path'];
-    $site_path     = $site_info['path'];
-    $home_path_len = $home_info['path-length'];
-    $site_path_len = $site_info['path-length'];
-    if ( $home_path_len > $site_path_len ) {
+    $path      = $urlinfo['path'];
+    $home_info = qtranxf_get_home_info();
+    $site_info = qtranxf_get_site_info();
+    $home_path = $home_info['path'];
+    $site_path = $site_info['path'];
+
+    if ( $home_path === $site_path ) {
         if ( qtranxf_startsWith( $path, $home_path ) ) {
-            $urlinfo['path-base']        = $home_path;
-            $urlinfo['path-base-length'] = $home_path_len;
-            $urlinfo['doing_front_end']  = true;
-        } elseif ( qtranxf_startsWith( $path, $site_path ) ) {
-            $urlinfo['path-base']        = $site_path;
-            $urlinfo['path-base-length'] = $site_path_len;
-            $urlinfo['doing_front_end']  = false;
-        }
-    } elseif ( $home_path_len < $site_path_len ) {
-        if ( qtranxf_startsWith( $path, $site_path ) ) {
-            $urlinfo['path-base']        = $site_path;
-            $urlinfo['path-base-length'] = $site_path_len;
-            $urlinfo['doing_front_end']  = false;
-        } elseif ( qtranxf_startsWith( $path, $home_path ) ) {
-            $urlinfo['path-base']        = $home_path;
-            $urlinfo['path-base-length'] = $home_path_len;
-            $urlinfo['doing_front_end']  = true;
-        }
-    } elseif ( $home_path != $site_path ) {
-        if ( qtranxf_startsWith( $path, $home_path ) ) {
-            $urlinfo['path-base']        = $home_path;
-            $urlinfo['path-base-length'] = $home_path_len;
-            $urlinfo['doing_front_end']  = true;
-        } elseif ( qtranxf_startsWith( $path, $site_path ) ) {
-            $urlinfo['path-base']        = $site_path;
-            $urlinfo['path-base-length'] = $site_path_len;
-            $urlinfo['doing_front_end']  = false;
+            $urlinfo['path-base'] = $home_path;
         }
     } else {
-        // home_path == site_path
-        if ( qtranxf_startsWith( $path, $home_path ) ) {
-            $urlinfo['path-base']        = $home_path;
-            $urlinfo['path-base-length'] = $home_path_len;
+        if ( strlen( $home_path ) < strlen( $site_path ) ) {
+            if ( qtranxf_startsWith( $path, $site_path ) ) {
+                $urlinfo['path-base']       = $site_path;
+                $urlinfo['doing_front_end'] = false;
+            } elseif ( qtranxf_startsWith( $path, $home_path ) ) {
+                $urlinfo['path-base']       = $home_path;
+                $urlinfo['doing_front_end'] = true;
+            }
+        } else {
+            if ( qtranxf_startsWith( $path, $home_path ) ) {
+                $urlinfo['path-base']       = $home_path;
+                $urlinfo['doing_front_end'] = true;
+            } elseif ( qtranxf_startsWith( $path, $site_path ) ) {
+                $urlinfo['path-base']       = $site_path;
+                $urlinfo['doing_front_end'] = false;
+            }
         }
     }
 }
 
 /**
+ * Complete urlinfo with 'wp-path'.
+ * If 'wp-path' is not set, this means url does not belong to this WP installation.
+ *
+ * @param array $urlinfo
+ *
  * @since 3.2.8
  */
 function qtranxf_complete_url_info_path( &$urlinfo ) {
@@ -304,16 +276,16 @@ function qtranxf_complete_url_info_path( &$urlinfo ) {
         if ( empty( $urlinfo['path-base'] ) ) {
             $urlinfo['wp-path'] = $urlinfo['path'];
         } elseif ( ! empty( $urlinfo['path'] ) && qtranxf_startsWith( $urlinfo['path'], $urlinfo['path-base'] ) ) {
-            if ( isset( $urlinfo['path'][ $urlinfo['path-base-length'] ] ) ) {
-                if ( $urlinfo['path'][ $urlinfo['path-base-length'] ] == '/' ) {
-                    $urlinfo['wp-path'] = substr( $urlinfo['path'], $urlinfo['path-base-length'] );
+            $base_length = strlen( $urlinfo['path-base'] );
+            if ( isset( $urlinfo['path'][ $base_length ] ) ) {
+                if ( $urlinfo['path'][ $base_length ] === '/' ) {
+                    $urlinfo['wp-path'] = substr( $urlinfo['path'], $base_length );
                 }
             } else {
                 $urlinfo['wp-path'] = '';
             }
         }
     }
-    // 'wp-path' not set means url does not belong to this WP installation
 }
 
 /**
@@ -412,7 +384,9 @@ function qtranxf_external_host( $host ) {
 }
 
 function qtranxf_isMultilingual( $str ) {
-    return preg_match( '/<!--:[a-z]{2}-->|\[:[a-z]{2}]|{:[a-z]{2}}/im', $str );
+    $lang_code = QTX_LANG_CODE_FORMAT;
+
+    return preg_match( "/<!--:$lang_code-->|\[:$lang_code]|{:$lang_code}/im", $str );
 }
 
 function qtranxf_is_multilingual_deep( $value ) {
@@ -474,7 +448,7 @@ function qtranxf_getLanguageName( $lang = '' ) {
         // not loaded by default, since this place should not be hit frequently
         $locale = $q_config['locale'][ $q_config['language'] ];
         if ( ! load_textdomain( 'language-names', QTRANSLATE_DIR . '/lang/language-names/language-' . $locale . '.mo' ) ) {
-            if ( $locale[2] == '_' ) {
+            if ( strlen( $locale ) > 2 && $locale[2] == '_' ) {
                 $locale = substr( $locale, 0, 2 );
                 load_textdomain( 'language-names', QTRANSLATE_DIR . '/lang/language-names/language-' . $locale . '.mo' );
             }
@@ -482,15 +456,17 @@ function qtranxf_getLanguageName( $lang = '' ) {
     }
     $translations = get_translations_for_domain( 'language-names' );
     $locale       = $q_config['locale'][ $lang ];
-    while ( ! isset( $translations->entries[ $locale ] ) ) {
-        if ( $locale[2] == '_' ) {
+    if ( ! isset( $translations->entries[ $locale ] ) ) {
+        $found_locale = false;
+        if ( strlen( $locale ) > 2 && $locale[2] == '_' ) {
             $locale = substr( $locale, 0, 2 );
             if ( isset( $translations->entries[ $locale ] ) ) {
-                break;
+                $found_locale = true;
             }
         }
-
-        return $q_config['language-names'][ $lang ] = $q_config['language_name'][ $lang ];
+        if ( ! $found_locale ) {
+            return $q_config['language-names'][ $lang ] = $q_config['language_name'][ $lang ];
+        }
     }
     $n = $translations->entries[ $locale ]->translations[0];
     if ( empty( $q_config['language_name_case'] ) ) {
@@ -499,7 +475,7 @@ function qtranxf_getLanguageName( $lang = '' ) {
             // module 'mbstring' may not be installed by default: https://wordpress.org/support/topic/qtranslate_utilsphp-on-line-504
             $n = mb_convert_case( $n, MB_CASE_TITLE );
         } else {
-            $msg = 'qTranslate-XT: Enable PHP module "mbstring" to get names of languages printed in "Camel Case" or disable option \'Show language names in "Camel Case"\' on admin page ' . admin_url( 'options-general.php?page=qtranslate-xt#general' ) . '. You may find more information at http://php.net/manual/en/mbstring.installation.php, or search for PHP installation options on control panel of your server provider.';
+            $msg = 'qTranslate-XT: Enable PHP module "mbstring" to get names of languages printed in "Camel Case" or disable option \'Show language names in "Camel Case"\' on admin page ' . admin_url( 'options-general.php?page=qtranslate-xt#general' ) . '. You may find more information at https://php.net/manual/en/mbstring.installation.php, or search for PHP installation options on control panel of your server provider.';
             error_log( $msg );
         }
     }
@@ -522,7 +498,7 @@ function qtranxf_startsWith( $string, $needle ) {
     if ( $len > strlen( $string ) ) {
         return false;
     }
-    for ( $i = 0; $i < $len; ++ $i ) {
+    for ( $i = 0; $i < $len; ++$i ) {
         if ( $string[ $i ] != $needle[ $i ] ) {
             return false;
         }
@@ -540,7 +516,7 @@ function qtranxf_endsWith( $string, $needle ) {
     if ( $base < 0 ) {
         return false;
     }
-    for ( $i = 0; $i < $len; ++ $i ) {
+    for ( $i = 0; $i < $len; ++$i ) {
         if ( $string[ $base + $i ] != $needle[ $i ] ) {
             return false;
         }
@@ -600,6 +576,16 @@ function qtranxf_is_rest_request_expected() {
 }
 
 /**
+ * Evaluate if the request URI leads to a GraphQL API call.
+ *
+ * @return bool
+ * @see is_graphql_http_request in https://github.com/wp-graphql/wp-graphql/blob/develop/src/Router.php
+ */
+function qtranxf_is_graphql_request_expected() {
+    return function_exists( 'is_graphql_http_request' ) && is_graphql_http_request();
+}
+
+/**
  * Evaluate if the current request allows HTTP redirection.
  * Admin requests (WP_ADMIN, DOING_AJAX, WP_CLI, DOING_CRON) or REST calls should not be redirected.
  *
@@ -608,6 +594,7 @@ function qtranxf_is_rest_request_expected() {
 function qtranxf_can_redirect() {
     return ! is_admin() && ! wp_doing_ajax() && ! ( defined( 'WP_CLI' ) && WP_CLI ) && ! wp_doing_cron() && empty( $_POST )
            && ( ! qtranxf_is_rest_request_expected() )
+           && ( ! qtranxf_is_graphql_request_expected() )
            // TODO clarify: 'REDIRECT_*' needs more testing --> && !isset($_SERVER['REDIRECT_URL'])
            && ( ! isset( $_SERVER['REDIRECT_STATUS'] ) || $_SERVER['REDIRECT_STATUS'] == '200' );
 }
@@ -621,14 +608,10 @@ function qtranxf_post_type() {
         return $post_type;
     }
     if ( $post && isset( $post->post_type ) ) {
-        $post_type = $post->post_type;
-
-        return $post_type;
+        return $post->post_type;
     }
     if ( isset( $_REQUEST['post_type'] ) ) {
-        $post_type = $_REQUEST['post_type'];
-
-        return $post_type;
+        return $_REQUEST['post_type'];
     }
 
     return null;
@@ -688,7 +671,10 @@ function qtranxf_merge_config( $cfg_all, $cfg ) {
 }
 
 /**
- * filters i18n configurations for the current page
+ * Parse i18n configurations, filtered for the current page URL and query.
+ * The post type is not filtered yet.
+ *
+ * @return array of active configurations, per post type
  */
 function qtranxf_parse_page_config( $config, $url_path, $url_query ) {
     global $q_config;
@@ -712,8 +698,10 @@ function qtranxf_parse_page_config( $config, $url_path, $url_query ) {
             continue;
         }
 
+        // Empty string key applies to all post types
         $post_type_key = '';
         if ( isset( $pgcfg['post_type'] ) ) {
+            // Store the post type(s) as a regex pattern
             if ( is_string( $pgcfg['post_type'] ) ) {
                 $post_type_key = $delimiter . $pgcfg['post_type'] . $delimiter;
                 unset( $pgcfg['post_type'] );
@@ -724,11 +712,13 @@ function qtranxf_parse_page_config( $config, $url_path, $url_query ) {
                 }
             }
         }
+
         if ( ! isset( $page_configs[ $post_type_key ] ) ) {
             $page_configs[ $post_type_key ] = array();
         }
         $page_config = &$page_configs[ $post_type_key ];
 
+        // Aggregate the page configs for this post type
         foreach ( $pgcfg as $key => $cfg ) {
             if ( empty( $cfg ) ) {
                 continue;
@@ -804,8 +794,18 @@ function qtranxf_parse_page_config( $config, $url_path, $url_query ) {
                 }
             }
         }
+
+        // Store all page config keys when selectors exist (pages or post_type)
+        if ( array_key_exists( 'pages', $pgcfg ) || ! empty( $post_type_key ) ) {
+            if ( ! isset ( $page_config['keys'] ) ) {
+                $page_config['keys'] = array( $pgkey );
+            } else {
+                $page_config['keys'][] = $pgkey;
+            }
+        }
     }
 
+    // Clean up empty configs
     foreach ( $page_configs as $post_type_key => &$page_config ) {
         if ( ! empty( $page_config ) ) {
             // clean up 'fields'

@@ -11,7 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class QTX_Admin_Gutenberg
  *
- * Manages the Gutenberg block editor with the related REST API
+ * Manages the Gutenberg block editor with the related REST API.
+ * Limitation: only the single language mode is supported.
  */
 class QTX_Admin_Gutenberg {
     /**
@@ -27,6 +28,12 @@ class QTX_Admin_Gutenberg {
      */
     public function rest_api_init() {
         global $q_config;
+
+        // Filter to allow qTranslate-XT to manage the block editor (single language mode)
+        $admin_block_editor = apply_filters( 'qtranslate_admin_block_editor', true );
+        if ( ! $admin_block_editor ) {
+            return;
+        }
 
         $post_types = get_post_types( array( 'show_in_rest' => true ) );
         foreach ( $post_types as $post_type ) {
@@ -58,7 +65,10 @@ class QTX_Admin_Gutenberg {
             return $response;
         }
 
-        if ( function_exists('use_block_editor_for_post') && !use_block_editor_for_post( $post ) ) {
+        // See https://github.com/WordPress/gutenberg/issues/14012#issuecomment-467015362
+        require_once( ABSPATH . 'wp-admin/includes/post.php' );
+
+        if ( ! use_block_editor_for_post( $post ) ) {
             return $response;
         }
 
@@ -157,12 +167,22 @@ class QTX_Admin_Gutenberg {
      * Enqueue the JS script
      */
     public function enqueue_block_editor_assets() {
-        $script_file = 'js/lib/editor-gutenberg.js';
+        // By default, excluded post types are filtered out.
+        global $q_config;
+        $post_type = qtranxf_post_type();
+        $post_type_excluded = isset( $q_config['post_type_excluded'] ) && isset( $post_type ) && in_array( $post_type, $q_config['post_type_excluded'] );
+        
+        // Filter to allow qTranslate-XT to manage the block editor (single language mode)
+        $admin_block_editor = apply_filters( 'qtranslate_admin_block_editor', ! $post_type_excluded );
+        if ( ! $admin_block_editor ) {
+            return;
+        }
+
         wp_register_script(
             'qtx-gutenberg',
-            plugins_url( $script_file, __FILE__ ),
+            plugins_url( 'dist/editor-gutenberg.js', QTRANSLATE_FILE ),
             array(),
-            filemtime( plugin_dir_path( __FILE__ ) . $script_file ),
+            QTX_VERSION,
             true
         );
         wp_enqueue_script( 'qtx-gutenberg' );

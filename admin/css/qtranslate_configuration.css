@@ -22,9 +22,18 @@
     vertical-align: middle;
 }
 
+.qtranxs-lang-flag {
+    vertical-align: middle;
+    margin: 2px 4px;
+}
+
 .qtranxs-language-list td {
     vertical-align: middle;
     display: table-cell;
+}
+
+.qtranxs-language-list .disabled {
+    opacity: 40%;
 }
 
 #qtranxs-enabled-languages td {
@@ -43,4 +52,31 @@
 .qtranxs-form-table .widefat th, .qtranxs-form-table .widefat td {
 	padding: 8px 10px;
     display: table-cell;
+}
+
+.qtranxs-deprecated {
+    opacity: 0.7;
+}
+
+.qtranxs-deprecated-warning {
+    color: darkorange;
+}
+
+.qtranxs-slugs-metabox {
+    width: 100%;
+    padding: 0;
+}
+
+.qtranxs-slugs-metabox input {
+    color:#777;
+    width: 100%;
+}
+
+.qtranxs-slugs-list {
+    list-style: none;
+    white-space: nowrap;
+}
+
+.qtranxs-slugs-terms input[type=text] {
+    width: 90%;
 }

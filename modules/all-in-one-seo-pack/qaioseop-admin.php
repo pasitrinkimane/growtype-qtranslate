@@ -3,11 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-add_filter( 'qtranslate_load_admin_page_config', 'qaioseop_add_admin_page_config' );
-function qaioseop_add_admin_page_config( $page_configs ) {
+add_filter( 'qtranslate_admin_config', 'qtranxf_aioseop_add_admin_page_config' );
+function qtranxf_aioseop_add_admin_page_config( $page_configs ) {
     // post.php
     $page_config          = array();
-    $page_config['pages'] = array( 'post.php' => '' );
+    $page_config['pages'] = array( 'post.php' => '', 'term.php' => '' );
     //$page_config['anchors'] = array( 'titlediv' );
 
     $page_config['forms'] = array();

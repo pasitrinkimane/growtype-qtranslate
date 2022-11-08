@@ -5,8 +5,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once( QTRANSLATE_DIR . '/admin/qtx_admin_options.php' );
 require_once( QTRANSLATE_DIR . '/admin/qtx_import_export.php' );
+require_once( QTRANSLATE_DIR . '/modules/qtx_admin_module_manager.php' );
 
 function qtranxf_editConfig() {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_edit_config' );
+    qtranxf_edit_config();
+}
+
+function qtranxf_edit_config() {
     global $q_config;
     if ( ! qtranxf_verify_nonce( 'qtranslate-x_configuration_form' ) ) {
         return;
@@ -23,6 +29,7 @@ function qtranxf_editConfig() {
     }
 
     $errors   = &$q_config['url_info']['errors'];
+    $warnings = &$q_config['url_info']['warnings'];
     $messages = &$q_config['url_info']['messages'];
 
     $q_config['posted']                  = array();
@@ -35,12 +42,10 @@ function qtranxf_editConfig() {
     $original_lang = &$q_config['posted']['original_lang'];
 
     // check for action
-    if ( isset( $_POST['qtranslate_reset'] ) && isset( $_POST['qtranslate_reset2'] ) ) {
+    if ( isset( $_POST['qtranslate_reset_all'] ) && isset( $_POST['qtranslate_reset_confirm'] ) ) {
         $messages[] = __( 'qTranslate has been reset.', 'qtranslate' );
     } elseif ( isset( $_POST['default_language'] ) ) {
-
-        qtranxf_updateSettings();
-
+        qtranxf_update_settings();
         // execute actions
         qtranxf_executeOnUpdate();
     }
@@ -58,8 +63,13 @@ function qtranxf_editConfig() {
         if ( $_POST['language_name'] == '' ) {
             $errors[] = __( 'The Language must have a name!', 'qtranslate' );
         }
-        if ( strlen( $lang ) != 2 ) {
-            $errors[] = __( 'Language Code has to be 2 characters long!', 'qtranslate' );
+        if ( ! preg_match( '/^' . QTX_LANG_CODE_FORMAT . '$/', $lang ) ) {
+            // TODO: still allow 2-letter upper case for existing values, keep only case-sensitive check once legacy fixed in DB
+            if ( ! empty ( $original_lang ) && $lang === $original_lang && preg_match( '/^[a-z]{2}$/i', $lang ) ) {
+                $warnings[] = sprintf( _( 'The 2-letter language code "%s" should be lower case (ISO 639-1). Upper case is still allowed for legacy codes but not for new entries.', 'qtranslate' ), $lang );
+            } else {
+                $errors[] = __( 'Invalid language code!', 'qtranslate' );
+            }
         }
         $langs = array();
         qtranxf_load_languages( $langs );
@@ -170,10 +180,10 @@ function qtranxf_editConfig() {
                 }
                 switch ( $post->post_type ) {
                     case 'post':
-                        ++ $cnt_post;
+                        ++$cnt_post;
                         break;
                     case 'page':
-                        ++ $cnt_page;
+                        ++$cnt_page;
                         break;
                 }
                 $wpdb->query( $wpdb->prepare( 'UPDATE ' . $wpdb->posts . ' set post_content = %s, post_title = %s, post_excerpt = %s WHERE ID = %d', $content, $title, $excerpt, $post->ID ) );
@@ -195,9 +205,13 @@ function qtranxf_editConfig() {
         }
     } elseif ( isset( $_GET['edit'] ) ) {
         $lang = sanitize_text_field( $_GET['edit'] );
-        $lang = preg_replace( '/[^a-z]/i', '', $lang );
-        if ( strlen( $lang ) != 2 ) {
-            $errors[] = __( 'Language Code has to be 2 characters long!', 'qtranslate' );
+        if ( ! preg_match( '/^' . QTX_LANG_CODE_FORMAT . '$/', $lang ) ) {
+            // TODO: still allow 2-letter upper case for existing values, keep only case-sensitive check once legacy fixed in DB
+            if ( preg_match( '/^[a-z]{2}$/i', $lang ) ) {
+                $warnings[] = sprintf( _( 'The 2-letter language code "%s" should be lower case (ISO 639-1). Upper case is still allowed for legacy codes but not for new entries.', 'qtranslate' ), $lang );
+            } else {
+                $errors[] = __( 'Invalid language code!', 'qtranslate' );
+            }
         }
         $original_lang = $lang;
         $language_code = $lang;
@@ -280,12 +294,13 @@ function qtranxf_editConfig() {
         $messages[] = $msg;
     }
 
-    do_action( 'qtranslate_editConfig' );
+    do_action( 'qtranslate_edit_config' );
+    do_action_deprecated( 'qtranslate_editConfig', array(), '3.10.0', 'qtranslate_edit_config' );
 
     $everything_fine = ( ( isset( $_POST['submit'] ) || isset( $_GET['delete'] ) || isset( $_GET['enable'] ) || isset( $_GET['disable'] ) || isset( $_GET['moveup'] ) || isset( $_GET['movedown'] ) ) && empty( $errors ) );
     if ( $everything_fine ) {
         // settings might have changed, so save
-        qtranxf_saveConfig();
+        qtranxf_save_config();
         if ( empty( $messages ) ) {
             $messages[] = __( 'Options saved.', 'qtranslate' );
         }
@@ -302,6 +317,11 @@ function qtranxf_editConfig() {
 }
 
 function qtranxf_resetConfig() {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_admin_reset_config' );
+    qtranxf_reset_config();
+}
+
+function qtranxf_reset_config() {
     global $qtranslate_options;
 
     if ( ! current_user_can( 'manage_options' ) ) {
@@ -313,7 +333,7 @@ function qtranxf_resetConfig() {
         qtranxf_add_message( __( 'Admin notices have been reset. You will see all applicable notices on admin pages and may dismiss them again.', 'qtranslate' ) );
     }
 
-    if ( ! isset( $_POST['qtranslate_reset'] ) || ! isset( $_POST['qtranslate_reset2'] ) ) {
+    if ( ! isset( $_POST['qtranslate_reset_all'] ) || ! isset( $_POST['qtranslate_reset_confirm'] ) ) {
         return;
     }
 
@@ -338,7 +358,9 @@ function qtranxf_resetConfig() {
     // internal private options not loaded by default
     delete_option( 'qtranslate_next_update_mo' );
     delete_option( 'qtranslate_next_thanks' );
-    delete_option( 'qtranslate_modules' );
+    delete_option( QTX_OPTIONS_MODULES_STATE );
+    delete_option( QTX_OPTIONS_MODULE_ACF );
+    delete_option( QTX_OPTIONS_MODULE_SLUGS );
 
     // obsolete options
     delete_option( 'qtranslate_custom_pages' );
@@ -349,18 +371,18 @@ function qtranxf_resetConfig() {
     delete_option( 'qtranslate_versions' );
     delete_option( 'qtranslate_disable_header_css' );
 
-    if ( isset( $_POST['qtranslate_reset3'] ) ) {
+    if ( isset( $_POST['qtranslate_reset_terms'] ) ) {
         delete_option( 'qtranslate_term_name' );
     }
 
     remove_filter( 'locale', 'qtranxf_localeForCurrentLanguage', 99 );
-    qtranxf_reloadConfig();
+    qtranxf_reload_config();
     add_filter( 'locale', 'qtranxf_localeForCurrentLanguage', 99 );
 
-    QTX_Admin_Modules::update_modules_status();
+    QTX_Admin_Module_Manager::update_modules_state();
 }
 
-add_action( 'qtranslate_saveConfig', 'qtranxf_resetConfig', 20 );
+add_action( 'qtranslate_save_config', 'qtranxf_reset_config', 20 );
 
 function qtranxf_update_option( $nm, $default_value = null ) {
     global $q_config;
@@ -374,7 +396,7 @@ function qtranxf_update_option( $nm, $default_value = null ) {
             if ( function_exists( $default_value ) ) {
                 $default_value = call_user_func( $default_value );
             } elseif ( is_array( $q_config[ $nm ] ) ) {
-                $default_value = preg_split( '/[\s,]+/', $default_value, null, PREG_SPLIT_NO_EMPTY );
+                $default_value = preg_split( '/[\s,]+/', $default_value, -1, PREG_SPLIT_NO_EMPTY );
             }
         }
         if ( $default_value === $q_config[ $nm ] ) {
@@ -407,10 +429,15 @@ function qtranxf_update_option_bool( $nm, $default_value = null ) {
     }
 }
 
+function qtranxf_saveConfig() {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_save_config' );
+    qtranxf_save_config();
+}
+
 /**
  * saves entire configuration
  */
-function qtranxf_saveConfig() {
+function qtranxf_save_config() {
     global $q_config, $qtranslate_options;
 
     qtranxf_update_option( 'default_language' );
@@ -441,7 +468,7 @@ function qtranxf_saveConfig() {
 
     update_option( 'qtranslate_ignore_file_types', implode( ',', $q_config['ignore_file_types'] ) );
 
-    qtranxf_update_option( 'flag_location', qtranxf_flag_location_small() );
+    qtranxf_update_option( 'flag_location', qtranxf_flag_location_default() );
 
     qtranxf_update_option( 'filter_options', explode( ' ', QTX_FILTER_OPTIONS_DEFAULT ) );
 
@@ -468,15 +495,21 @@ function qtranxf_saveConfig() {
         qtranxf_update_option( $nm, $def );
     }
 
-    do_action( 'qtranslate_saveConfig' );
+    do_action( 'qtranslate_save_config' );
+    do_action_deprecated( 'qtranslate_saveConfig', array(), '3.10.0', 'qtranslate_save_config' );
 }
 
 function qtranxf_reloadConfig() {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_reload_config' );
+    qtranxf_reload_config();
+}
+
+function qtranxf_reload_config() {
     global $q_config;
     $url_info = isset( $q_config['url_info'] ) ? $q_config['url_info'] : null;
     qtranxf_del_conf_filters();
-    qtranxf_loadConfig();
-    qtranxf_admin_loadConfig();
+    qtranxf_load_config();
+    qtranxf_admin_load_config();
     if ( $url_info ) {
         $q_config['url_info'] = $url_info;
         if ( isset( $q_config['url_info']['language'] ) ) {
@@ -490,11 +523,17 @@ function qtranxf_reloadConfig() {
 }
 
 function qtranxf_updateSetting( $var, $type = QTX_STRING, $def = null ) {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_update_setting' );
+    qtranxf_update_setting( $var, $type, $def );
+}
+
+function qtranxf_update_setting( $var, $type = QTX_STRING, $def = null ) {
     global $q_config, $qtranslate_options;
     if ( ! isset( $_POST['submit'] ) ) {
         return false;
     }
-    if ( ! isset( $_POST[ $var ] ) && $type != QTX_BOOLEAN ) {
+    // Require POST data except for booleans, as unchecked boxes are not sent with the form.
+    if ( ! isset( $_POST[ $var ] ) && $type != QTX_BOOLEAN && $type != QTX_BOOLEAN_SET ) {
         return false;
     }
 
@@ -531,6 +570,7 @@ function qtranxf_updateSetting( $var, $type = QTX_STRING, $def = null ) {
             qtranxf_update_option( $var, $def );
 
             return true;
+
         case QTX_TEXT:
             $val = $_POST[ $var ];
             // standardize multi-line string
@@ -556,17 +596,18 @@ function qtranxf_updateSetting( $var, $type = QTX_STRING, $def = null ) {
             qtranxf_update_option( $var, $def );
 
             return true;
+
         case QTX_ARRAY:
-            $val = $_POST[ $var ];
-            if ( ! is_array( $_POST[ $var ] ) ) {
+            $val = isset( $_POST[ $var ] ) ? $_POST[ $var ] : array();
+            if ( ! is_array( $val ) ) {
                 $val = sanitize_text_field( $val );
-                $val = preg_split( '/[\s,]+/', $val, null, PREG_SPLIT_NO_EMPTY );
+                $val = preg_split( '/[\s,]+/', $val, -1, PREG_SPLIT_NO_EMPTY );
             }
-            if ( empty( $val ) && ! is_null( $def ) ) {
+            if ( empty( $val ) ) {
                 if ( is_string( $def ) ) {
-                    $val = preg_split( '/[\s,]+/', $def, null, PREG_SPLIT_NO_EMPTY );
+                    $val = preg_split( '/[\s,]+/', $def, -1, PREG_SPLIT_NO_EMPTY );
                 } else if ( is_array( $def ) ) {
-                    $val = $def;
+                    $val = $def;  // TODO: why replace all the array? Check if shouldn't it be merged with default.
                 }
             }
             if ( isset( $q_config[ $var ] ) && qtranxf_array_compare( $q_config[ $var ], $val ) ) {
@@ -576,6 +617,29 @@ function qtranxf_updateSetting( $var, $type = QTX_STRING, $def = null ) {
             qtranxf_update_option( $var, $def );
 
             return true;
+
+        case QTX_BOOLEAN_SET:
+            $val = isset( $_POST[ $var ] ) ? $_POST[ $var ] : array();
+            // Convert all input values to boolean types
+            foreach ( $val as &$value ) {
+                $value = (bool) $value;
+            }
+            // Input checkboxes that are unchecked are not in $_POST so default values are used to detect missing keys.
+            if ( isset ( $def ) ) {
+                foreach ( array_keys( $def ) as $key ) {
+                    if ( ! array_key_exists( $key, $val ) ) {
+                        $val[ $key ] = false;   // Ignore the default value, enforce `false` for that key.
+                    }
+                }
+            }
+            if ( isset( $q_config[ $var ] ) && qtranxf_array_compare( $q_config[ $var ], $val ) ) {
+                return false;
+            }
+            $q_config[ $var ] = $val;
+            qtranxf_update_option( $var, $def );
+
+            return true;
+
         case QTX_BOOLEAN:
             if ( isset( $_POST[ $var ] ) && $_POST[ $var ] == 1 ) {
                 if ( $q_config[ $var ] ) {
@@ -591,6 +655,7 @@ function qtranxf_updateSetting( $var, $type = QTX_STRING, $def = null ) {
             qtranxf_update_option_bool( $var, $def );
 
             return true;
+
         case QTX_INTEGER:
             $val = sanitize_text_field( $_POST[ $var ] );
             $val = intval( $val );
@@ -621,17 +686,23 @@ function qtranxf_update_i18n_config() {
     $json_files         = $q_config['config_files'];
     $custom_i18n_config = $q_config['custom_i18n_config'];
     $cfg                = qtranxf_load_config_all( $json_files, $custom_i18n_config );
-    if ( $q_config['admin_config'] !== $cfg['admin-config'] ) {
+    // TODO clarify admin/front contexts before call
+    if ( isset( $q_config['admin_config'] ) && $q_config['admin_config'] !== $cfg['admin-config'] ) {
         $q_config['admin_config'] = $cfg['admin-config'];
         qtranxf_update_option( 'admin_config' );
     }
-    if ( $q_config['front_config'] !== $cfg['front-config'] ) {
+    if ( isset( $q_config['front_config'] ) && $q_config['front_config'] !== $cfg['front-config'] ) {
         $q_config['front_config'] = $cfg['front-config'];
         qtranxf_update_option( 'front_config' );
     }
 }
 
-function qtranxf_updateSettingFlagLocation( $nm ) {
+function qtranxf_updateSettingFlagLocation( $name ) {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_update_setting_flag_location' );
+    qtranxf_update_setting_flag_location( $name );
+}
+
+function qtranxf_update_setting_flag_location( $nm ) {
     global $q_config;
     if ( ! isset( $_POST['submit'] ) ) {
         return false;
@@ -641,7 +712,7 @@ function qtranxf_updateSettingFlagLocation( $nm ) {
     }
     $flag_location = untrailingslashit( sanitize_text_field( $_POST[ $nm ] ) );
     if ( empty( $flag_location ) ) {
-        $flag_location = qtranxf_flag_location_small();
+        $flag_location = qtranxf_flag_location_default();
     }
     $flag_location = trailingslashit( $flag_location );
     if ( ! file_exists( trailingslashit( WP_CONTENT_DIR ) . $flag_location ) ) {
@@ -649,7 +720,7 @@ function qtranxf_updateSettingFlagLocation( $nm ) {
     }
     if ( $flag_location != $q_config[ $nm ] ) {
         $q_config[ $nm ] = $flag_location;
-        if ( $flag_location == qtranxf_flag_location_small() ) {
+        if ( $flag_location == qtranxf_flag_location_default() ) {
             delete_option( 'qtranslate_' . $nm );
         } else {
             update_option( 'qtranslate_' . $nm, $flag_location );
@@ -660,6 +731,11 @@ function qtranxf_updateSettingFlagLocation( $nm ) {
 }
 
 function qtranxf_updateSettingIgnoreFileTypes( $name ) {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_update_setting_ignore_file_types' );
+    qtranxf_update_setting_ignore_file_types( $name );
+}
+
+function qtranxf_update_setting_ignore_file_types( $name ) {
     global $q_config;
     if ( ! isset( $_POST['submit'] ) ) {
         return false;
@@ -667,7 +743,7 @@ function qtranxf_updateSettingIgnoreFileTypes( $name ) {
     if ( ! isset( $_POST[ $name ] ) ) {
         return false;
     }
-    $posted  = preg_split( '/[\s,]+/', strtolower( sanitize_text_field( $_POST[ $name ] ) ), null, PREG_SPLIT_NO_EMPTY );
+    $posted  = preg_split( '/[\s,]+/', strtolower( sanitize_text_field( $_POST[ $name ] ) ), -1, PREG_SPLIT_NO_EMPTY );
     $ignored = explode( ',', QTX_IGNORE_FILE_TYPES );
     if ( is_array( $posted ) ) {
         foreach ( $posted as $posted_value ) {
@@ -714,6 +790,11 @@ function qtranxf_parse_post_type_excluded() {
 }
 
 function qtranxf_updateSettings() {
+    _deprecated_function( __FUNCTION__, '3.10.0', 'qtranxf_update_settings' );
+    qtranxf_update_settings();
+}
+
+function qtranxf_update_settings() {
     global $qtranslate_options, $q_config;
 
     $errors = &$q_config['url_info']['errors'];
@@ -724,34 +805,35 @@ function qtranxf_updateSettings() {
     do_action( 'qtranslate_update_settings_pre' );
 
     // special cases handling for front options
-    qtranxf_updateSetting( 'default_language', QTX_LANGUAGE );
+    qtranxf_update_setting( 'default_language', QTX_LANGUAGE );
     // enabled_languages are not changed at this place
-    qtranxf_updateSettingFlagLocation( 'flag_location' );
-    qtranxf_updateSettingIgnoreFileTypes( 'ignore_file_types' );
+    qtranxf_update_setting_flag_location( 'flag_location' );
+    qtranxf_update_setting_ignore_file_types( 'ignore_file_types' );
     $_POST['language_name_case'] = isset( $_POST['camel_case'] ) ? '0' : '1';
     // special cases handling for front options - end
 
     foreach ( $qtranslate_options['front']['int'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_INTEGER, $default );
+        qtranxf_update_setting( $name, QTX_INTEGER, $default );
     }
 
     foreach ( $qtranslate_options['front']['bool'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_BOOLEAN, $default );
+        qtranxf_update_setting( $name, QTX_BOOLEAN, $default );
     }
-    qtranxf_updateSetting( 'qtrans_compatibility', QTX_BOOLEAN );
+    qtranxf_update_setting( 'qtrans_compatibility', QTX_BOOLEAN );
 
     foreach ( $qtranslate_options['front']['str'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_STRING, $default );
+        qtranxf_update_setting( $name, QTX_STRING, $default );
     }
 
     foreach ( $qtranslate_options['front']['text'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_TEXT, $default );
+        qtranxf_update_setting( $name, QTX_TEXT, $default );
     }
 
     foreach ( $qtranslate_options['front']['array'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_ARRAY, $default );
+        qtranxf_update_setting( $name, QTX_ARRAY, $default );
     }
-    qtranxf_updateSetting( 'filter_options', QTX_ARRAY );
+
+    qtranxf_update_setting( 'filter_options', QTX_ARRAY );
 
     switch ( $q_config['url_mode'] ) {
         case QTX_URL_DOMAIN:
@@ -761,7 +843,7 @@ function qtranxf_updateSettings() {
         case QTX_URL_QUERY:
         case QTX_URL_PATH:
         default:
-            qtranxf_updateSetting( 'disable_client_cookies', QTX_BOOLEAN );
+            qtranxf_update_setting( 'disable_client_cookies', QTX_BOOLEAN );
             break;
     }
 
@@ -785,7 +867,7 @@ function qtranxf_updateSettings() {
     if ( isset( $_POST['json_config_files'] ) ) {
         // verify that files are loadable
         $json_config_files_post = sanitize_text_field( stripslashes( $_POST['json_config_files'] ) );
-        $json_files             = preg_split( '/[\s,]+/', $json_config_files_post, null, PREG_SPLIT_NO_EMPTY );
+        $json_files             = preg_split( '/[\s,]+/', $json_config_files_post, -1, PREG_SPLIT_NO_EMPTY );
         if ( empty( $json_files ) ) {
             $_POST['config_files'] = array();
             unset( $_POST['json_config_files'] );
@@ -835,23 +917,23 @@ function qtranxf_updateSettings() {
     do_action( 'qtranslate_update_settings_admin' );
 
     foreach ( $qtranslate_options['admin']['int'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_INTEGER, $default );
+        qtranxf_update_setting( $name, QTX_INTEGER, $default );
     }
 
     foreach ( $qtranslate_options['admin']['bool'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_BOOLEAN, $default );
+        qtranxf_update_setting( $name, QTX_BOOLEAN, $default );
     }
 
     foreach ( $qtranslate_options['admin']['str'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_STRING, $default );
+        qtranxf_update_setting( $name, QTX_STRING, $default );
     }
 
     foreach ( $qtranslate_options['admin']['text'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_TEXT, $default );
+        qtranxf_update_setting( $name, QTX_TEXT, $default );
     }
 
     foreach ( $qtranslate_options['admin']['array'] as $name => $default ) {
-        qtranxf_updateSetting( $name, QTX_ARRAY, $default );
+        qtranxf_update_setting( $name, QTX_ARRAY, $default );
     }
 
     if ( empty( $_POST['json_config_files'] ) ) {
@@ -859,6 +941,10 @@ function qtranxf_updateSettings() {
     }
 
     $q_config['i18n-cache'] = array(); // clear i18n-config cache
+
+    qtranxf_update_setting( 'admin_enabled_modules', QTX_BOOLEAN_SET, $qtranslate_options['admin']['admin_enabled_modules'] );
+
+    QTX_Admin_Module_Manager::update_modules_state();
 
     // opportunity to update special custom settings on sub-plugins
     do_action( 'qtranslate_update_settings' );
@@ -869,7 +955,7 @@ function qtranxf_executeOnUpdate() {
     $messages = &$q_config['url_info']['messages'];
 
     if ( isset( $_POST['update_mo_now'] ) && $_POST['update_mo_now'] == '1' ) {
-        $result = qtranxf_updateGettextDatabases( true );
+        $result = qtranxf_update_gettext_databases( true );
         if ( $result === 0 ) {
             $messages[] = __( 'Gettext databases updated.', 'qtranslate' );
         }
@@ -882,6 +968,12 @@ function qtranxf_executeOnUpdate() {
         if ( $msg ) {
             $messages[] = $msg;
         }
+    }
+
+    if ( isset( $_POST['qtranslate_import_slugs_migrate'] ) && $_POST['qtranslate_import_slugs_migrate'] ) {
+        require_once( QTRANSLATE_DIR . '/modules/slugs/admin/slugs-migrate-qts.php' );
+        $db_commit  = isset( $_POST['qtranslate_import_slugs_confirm'] ) && $_POST['qtranslate_import_slugs_confirm'];
+        $messages[] = qtranxf_slugs_migrate_qts_data( $db_commit );
     }
 }
 
