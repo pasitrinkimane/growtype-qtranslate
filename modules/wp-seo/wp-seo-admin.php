@@ -36,8 +36,6 @@ function qtranxf_wpseo_get_meta_keys()
         //'wpseo_noindex',
         'wpseo_focuskw',
         //'wpseo_sitemap_include',
-        //'wpseo_linkdex',
-
         // Social fields.
         'wpseo_opengraph-title',
         'wpseo_opengraph-description',
@@ -54,10 +52,11 @@ function qtranxf_wpseo_admin_filters()
     switch ($pagenow) {
         case 'edit.php':
             $ids = qtranxf_wpseo_get_meta_keys();
+
             foreach ($ids as $id) {
                 add_filter($id, 'qtranxf_useCurrentLanguageIfNotFoundUseDefaultLanguage');
             }
-            //todo add_filter( "get_post_metadata", 'qwpseo_get_metadata_post', 5, 4);
+
             break;
         case 'post.php':
         case 'post-new.php':
@@ -126,6 +125,7 @@ function qtranxf_wpseo_script_deps()
 function qtranxf_wpseo_get_post_metadata($original_value, $object_id, $meta_key = '', $single = false)
 {
     global $q_config;
+
     if (empty($meta_key)) {
         //very ugly hack
         $trace = debug_backtrace();
@@ -152,4 +152,23 @@ function qtranxf_wpseo_encode_swirly($value)
     //qtranxf_dbg_log('qtranxf_wpseo_encode_swirly: $value: ',$value);
     $value = preg_replace('#\[:([a-z]{2}|)\]#i', '{:$1}', $value);
     return $value;
+}
+
+/**
+ * Translate blog name
+ */
+add_filter('pre_option_blogname', 'wp_docs_pre_filter_option');
+function wp_docs_pre_filter_option($pre_option)
+{
+    if (isset($_GET['action']) && $_GET['action'] === 'edit') {
+        global $wpdb;
+        $query = "SELECT * from $wpdb->options where option_name = 'blogname'";
+        $result = $wpdb->get_results($query, ARRAY_A);
+
+        if (!empty($result)) {
+            $option_value = $result[0]['option_value'];
+
+            return __($option_value);
+        }
+    }
 }
