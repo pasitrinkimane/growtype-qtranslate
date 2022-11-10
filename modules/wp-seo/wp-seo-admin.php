@@ -160,16 +160,23 @@ function qtranxf_wpseo_encode_swirly($value)
 add_filter('pre_option_blogname', 'wp_docs_pre_filter_option');
 function wp_docs_pre_filter_option($pre_option)
 {
-    if (isset($_GET['action']) && $_GET['action'] === 'edit') {
-        global $wpdb;
-        $query = "SELECT * from $wpdb->options where option_name = 'blogname'";
-        $result = $wpdb->get_results($query, ARRAY_A);
+    global $pagenow;
 
-        if (!empty($result)) {
-            $option_value = $result[0]['option_value'];
+    switch ($pagenow) {
+        case 'post.php':
+        case 'term.php':
+            global $wpdb;
 
-            return __($option_value);
-        }
+            $query = "SELECT * from $wpdb->options where option_name = 'blogname'";
+            $result = $wpdb->get_results($query, ARRAY_A);
+
+            if (!empty($result)) {
+                $option_value = $result[0]['option_value'];
+
+                return __($option_value);
+            }
+
+            break;
     }
 
     return $pre_option;
