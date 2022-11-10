@@ -171,4 +171,6 @@ function wp_docs_pre_filter_option($pre_option)
             return __($option_value);
         }
     }
+
+    return $pre_option;
 }
