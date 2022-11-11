@@ -425,6 +425,15 @@ class QTX_Admin_Settings {
                     </label>
                     <br/>
                     <p class="qtranxs-notes"><?php _e( 'This is relevant to all fields other than the main content of posts and pages. Such untranslated fields are always shown in an alternative available language, and will be prefixed with the language name in parentheses, if this option is on.', 'qtranslate' ) ?></p>
+                    <br/>
+                    <label for="content_translation_not_available_message">
+                        <input type="checkbox"
+                               name="content_translation_not_available_message"
+                               id="content_translation_not_available_message"
+                               value="1"<?php checked( $q_config['content_translation_not_available_message'] ) ?>/> <?php _e( 'Show "translation not available" message when field content is not available for the selected language.', 'qtranslate' ) ?>
+                    </label>
+                    <br/>
+                    <p class="qtranxs-notes"><?php _e( 'This is relevant to all fields.', 'qtranslate' ) ?></p>
                 </td>
             </tr>
             <tr>

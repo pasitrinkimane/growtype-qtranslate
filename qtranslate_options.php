@@ -116,6 +116,7 @@ function qtranxf_set_default_options( &$ops ) {
         'hide_untranslated'              => false,  // hide pages without content
         'show_menu_alternative_language' => false,  // hide menu items without a translation
         'show_displayed_language_prefix' => true,
+        'content_translation_not_available_message' => false,
         'show_alternative_content'       => false,
         'hide_default_language'          => true,   // hide language tag for default language in urls
         'use_secure_cookie'              => false,
