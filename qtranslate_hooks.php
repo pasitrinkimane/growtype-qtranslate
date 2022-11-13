@@ -134,7 +134,7 @@ function qtranxf_add_main_filters() {
 
     // since 3.1 changed priority from 0 to 100, since other plugins,
     // like https://wordpress.org/plugins/siteorigin-panels generate additional content, which also needs to be translated.
-    add_filter( 'get_the_content', 'qtranxf_useCurrentLanguageIfNotFoundShowEmpty', 100 );
+    add_filter( 'the_content', 'qtranxf_useCurrentLanguageIfNotFoundShowEmpty', 100 );
     add_filter( 'get_the_excerpt', 'qtranxf_useCurrentLanguageIfNotFoundShowEmpty', 100 );
     add_filter( 'get_the_excerpt_rss', 'qtranxf_useCurrentLanguageIfNotFoundShowEmpty', 100 );
 
