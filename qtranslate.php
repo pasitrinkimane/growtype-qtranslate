@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: qTranslate-XT
+ * Plugin Name: qTranslate-XT - GROWTYPE extended
  * Plugin URI: https://github.com/qtranslate/qtranslate-xt/
  * Description: Adds user-friendly multilingual content support, stored in single post.
  * Version: 3.12.1
