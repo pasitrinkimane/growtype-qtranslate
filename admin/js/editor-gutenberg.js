@@ -8,6 +8,19 @@
 (function () {
     // console.log('QT-XT API: setup apiFetch');
     wp.apiFetch.use((options, next) => {
+        if (options.path.indexOf('/v2/blocks') > -1) {
+            const newOptions = options;
+
+            let adminLang = sessionStorage.getItem("qtranslate-xt-admin-edit-language")
+
+            if (adminLang.length) {
+                let langParameter = "&qtx_editor_lang=" + adminLang
+
+                options.path = options.path + langParameter
+
+                return next(newOptions);
+            }
+        }
         if (!options.path || (options.method !== 'PUT' && options.method !== 'POST')) {
             return next(options);
         }

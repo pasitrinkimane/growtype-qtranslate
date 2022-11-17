@@ -85,13 +85,17 @@ class QTX_Admin_Gutenberg
         $editor_lang = $q_config['url_info']['language'];
 
         if (wp_is_json_request()) {
-            $url_params = [];
+            if (!empty($request->get_param('qtx_editor_lang'))) {
+                $editor_lang = $request->get_param('qtx_editor_lang');
+            } else {
+                $url_params = [];
 
-            if (isset($_SERVER['HTTP_REFERER'])) {
-                parse_str($_SERVER['HTTP_REFERER'], $url_params);
+                if (isset($_SERVER['HTTP_REFERER'])) {
+                    parse_str($_SERVER['HTTP_REFERER'], $url_params);
 
-                if (isset($url_params['lang'])) {
-                    $editor_lang = $url_params['lang'];
+                    if (isset($url_params['lang'])) {
+                        $editor_lang = $url_params['lang'];
+                    }
                 }
             }
         }
@@ -242,7 +246,10 @@ class QTX_Admin_Gutenberg
                 $response_data['excerpt']['raw'] = qtranxf_use($editor_lang, $response_data['excerpt']['raw'], false, true);
             }
 
-            $response_data['qtx_editor_lang'] = $editor_lang;
+            if (!wp_is_json_request()) {
+                $response_data['qtx_editor_lang'] = $editor_lang;
+            }
+
             $response->set_data($response_data);
         }
 
