@@ -8,7 +8,7 @@
 (function () {
     // console.log('QT-XT API: setup apiFetch');
     wp.apiFetch.use((options, next) => {
-        if (options.path.indexOf('/v2/blocks') > -1) {
+        if (options.path && options.path.indexOf('/v2/blocks') > -1) {
             let adminLang = sessionStorage.getItem("qtranslate-xt-admin-edit-language")
 
             if (adminLang.length) {
