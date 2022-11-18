@@ -14,8 +14,10 @@
             if (adminLang.length) {
                 let langParameter = "&qtx_editor_lang=" + adminLang
 
-                if (options.method !== 'PUT' && options.method !== 'POST') {
-                    options.path = options.path + langParameter
+                if (options.method !== 'PUT' && options.method !== 'POST' && options.method !== 'OPTIONS') {
+                    if (options.path.indexOf(langParameter) === -1) {
+                        options.path = options.path + langParameter
+                    }
                 } else if (options.method === 'PUT') {
                     options['data']['qtx_editor_lang'] = adminLang
                 }
