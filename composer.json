@@ -1,6 +1,6 @@
 {
-    "name": "newcool/qtranslate-xt",
-    "description": "qtranslate-xt - 3.8.0",
+    "name": "newcool/growtype-qtranslate",
+    "description": "qtranslate-xt extended",
     "type": "wordpress-plugin",
     "require": {
         "php": "^7.2"
