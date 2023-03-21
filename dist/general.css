@@ -8,6 +8,7 @@
     display: inline-block;
     margin-left: 9px;
 }
+
 @media only screen and (max-width: 640px) {
     .language-selector {
         position: relative;
@@ -16,6 +17,7 @@
         top: 0;
     }
 }
+
 .language-selector.text-mode {
     height: 29px;
 }
@@ -41,6 +43,7 @@
     justify-content: center;
     padding: 0;
 }
+
 #qtranslate-chooser li {
     -webkit-transition: all 0.5s;
     -o-transition: all 0.5s;
@@ -51,61 +54,74 @@
     -ms-flex-order: 1;
     order: 1;
 }
+
 #qtranslate-chooser li.active {
     display: block;
     -webkit-box-ordinal-group: 1;
     -ms-flex-order: 0;
     order: 0;
 }
+
 #qtranslate-chooser li a {
     display: inline-block;
     width: 24px;
     height: 14px;
 }
+
 #qtranslate-chooser:hover li {
     display: block;
 }
+
 #qtranslate-chooser span {
     font-weight: 400;
     margin-top: 1px;
     display: none;
 }
+
 #qtranslate-chooser li.lang-lt a {
-    background-image: url(./../images/lt.svg?ccd909176725d0942a8214fcda8ca3ad);
+    background-image: url(./../flags/svg/lt.svg?ccd909176725d0942a8214fcda8ca3ad);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-en a {
-    background-image: url(./../images/uk.svg?4625536da3cba4fb6519cb345095c7be);
+    background-image: url(./../flags/svg/uk.svg?4625536da3cba4fb6519cb345095c7be);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-pl a {
-    background-image: url(./../images/pl.svg?3ff5a87ab9899dca0f60bf6331de84cf);
+    background-image: url(./../flags/svg/pl.svg?3ff5a87ab9899dca0f60bf6331de84cf);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-dk a {
-    background-image: url(./../images/dk.svg?c67d774e2db5e0e48f22544b5ad5e58a);
+    background-image: url(./../flags/svg/dk.svg?c67d774e2db5e0e48f22544b5ad5e58a);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-no a {
-    background-image: url(./../images/no.svg?4f86ba66ac7c33d0e2f9651e89d679ce);
+    background-image: url(./../flags/svg/no.svg?4f86ba66ac7c33d0e2f9651e89d679ce);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-de a {
-    background-image: url(./../images/de.svg?3aa2adae0bf73f31c4cddf4864c295ad);
+    background-image: url(./../flags/svg/de.svg?3aa2adae0bf73f31c4cddf4864c295ad);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-lv a {
-    background-image: url(./../images/lv.svg?bc4d7ddab707d1a2c6bd655d86f7bfbd);
+    background-image: url(./../flags/svg/lv.svg?bc4d7ddab707d1a2c6bd655d86f7bfbd);
     background-size: cover;
 }
+
 #qtranslate-chooser li.lang-ru a {
-    background-image: url(./../images/ru.svg?ba60c71e8c5e12920ad2f18a0b776514);
+    background-image: url(./../flags/svg/ru.svg?ba60c71e8c5e12920ad2f18a0b776514);
     background-size: cover;
 }
 
 #header-side-menu .qtranxs-lang-menu {
     top: 2px;
 }
+
 @media only screen and (max-width: 992px) {
     #header-side-menu .qtranxs-lang-menu {
         display: none;
@@ -116,12 +132,15 @@
     position: relative;
     min-height: 27px;
 }
+
 .qtranxs-lang-menu li {
     margin: 0 !important;
 }
+
 .qtranxs-lang-menu:hover .sub-menu {
     display: block;
 }
+
 .qtranxs-lang-menu .sub-menu {
     display: none;
     position: absolute;
@@ -133,14 +152,17 @@
     background: none !important;
     border: none !important;
 }
+
 .qtranxs-lang-menu .sub-menu li {
     margin: 0;
 }
+
 .qtranxs-lang-menu a {
     max-width: 25px;
     display: inline-block;
     min-width: 43px;
 }
+
 .qtranxs-lang-menu a img {
     max-width: 100%;
 }

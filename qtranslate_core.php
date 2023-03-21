@@ -133,6 +133,11 @@ function qtranxf_init_language() {
     QTX_Module_Loader::load_active_modules();
 
     /**
+     * Customizer
+     */
+    require_once( QTRANSLATE_DIR . '/customizer/index.php' );
+
+    /**
      * allow other plugins and modules to initialize whatever they need for language
      */
     do_action( 'qtranslate_init_language', $url_info );

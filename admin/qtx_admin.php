@@ -10,8 +10,6 @@ require_once( QTRANSLATE_DIR . '/admin/qtx_admin_class_translator.php' );
 require_once( QTRANSLATE_DIR . '/admin/qtx_user_options.php' );
 require_once( QTRANSLATE_DIR . '/admin/qtx_admin_taxonomy.php' );
 
-require_once( QTRANSLATE_DIR . '/admin/customizer/index.php' );
-
 /**
  * @see qtranxf_collect_translations
  */
