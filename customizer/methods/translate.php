@@ -6,7 +6,7 @@
 add_action('customize_controls_enqueue_scripts', 'qtranslate_customizer_translate');
 function qtranslate_customizer_translate()
 {
-    wp_enqueue_script('customizer_translate', QTRANSLATE_DIR . '/admin/customizer/scripts/customizer-translate.js', array ('jquery'), null, true);
+    wp_enqueue_script('customizer_translate', plugins_url('customizer/scripts/customizer-translate.js', QTRANSLATE_FILE), array ('jquery'), null, true);
     wp_localize_script('customizer_translate', 'ajax_object',
         array (
             'ajaxurl' => admin_url('admin-ajax.php'),

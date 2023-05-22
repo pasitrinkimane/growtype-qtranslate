@@ -178,7 +178,13 @@ function qtranxf_wp_get_nav_menu_items($items, $menu, $args)
     if (!empty($qtransmenus)) {
         foreach ($qtransmenus as $key => $item) {
             $nlang = count($items);
-            qtranxf_add_language_menu_item($items, $menu_order, $itemid, $key, $language);
+
+            apply_filters('qtranslate_language_switcher_menu_item', $item);
+
+            if (!has_filter('qtranslate_language_switcher_menu_item')) {
+                qtranxf_add_language_menu_item($items, $menu_order, $itemid, $key, $language);
+            }
+
             $nlang = count($items) - $nlang;
             $menu->count += $nlang;
             $menu_order += $nlang;

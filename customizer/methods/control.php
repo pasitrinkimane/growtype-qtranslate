@@ -77,12 +77,21 @@ function language_customize_register($wp_customize)
 add_action('growtype_header_inner_before_close', 'growtype_header_inner_before_close_extend');
 function growtype_header_inner_before_close_extend()
 {
-    if (growtype_qtranslate_language_selector()) { ?>
-        <li class="language-selector <?php echo growtype_qtranslate_language_selector_classes() ?>">
-            <?php echo qtranxf_generateLanguageSelectCode('text') ?>
-        </li>
-        <?php
+    if (growtype_qtranslate_language_selector()) {
+        echo growtype_qtranslate_language_selector_html();
     }
+}
+
+function growtype_qtranslate_language_selector_html()
+{
+    ob_start();
+    ?>
+    <div class="language-selector <?php echo growtype_qtranslate_language_selector_classes() ?>">
+        <?php echo qtranxf_generateLanguageSelectCode('text') ?>
+    </div>
+    <?php
+
+    return ob_get_clean();
 }
 
 /**

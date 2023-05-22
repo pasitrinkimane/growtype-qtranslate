@@ -166,3 +166,7 @@
 .qtranxs-lang-menu a img {
     max-width: 100%;
 }
+
+.individual-mode #qtranslate-chooser li {
+    order: 0;
+}
