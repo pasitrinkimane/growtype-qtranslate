@@ -44,9 +44,9 @@
  * to find out which functions are safe to use in the 3rd-party integration.
  * Avoid accessing internal variables directly, as they are subject to be re-designed at any time.
 */
-if ( ! function_exists( 'add_filter' ) ) {
-    header( 'Status: 403 Forbidden' );
-    header( 'HTTP/1.1 403 Forbidden' );
+if (!function_exists('add_filter')) {
+    header('Status: 403 Forbidden');
+    header('HTTP/1.1 403 Forbidden');
     exit();
 }
 /**
@@ -54,16 +54,20 @@ if ( ! function_exists( 'add_filter' ) ) {
  * Designed as interface for other plugin integration. The documentation is available at
  * https://github.com/qtranslate/qtranslate-xt/wiki/Integration-Guide/
  */
-define( 'QTX_VERSION', '3.13.0.dev.0' );
+define('QTX_VERSION', '3.13.0.dev.0');
 
-if ( ! defined( 'QTRANSLATE_FILE' ) ) {
-    define( 'QTRANSLATE_FILE', __FILE__ );
-    define( 'QTRANSLATE_DIR', __DIR__ );
+if (!defined('QTRANSLATE_FILE')) {
+    define('QTRANSLATE_FILE', __FILE__);
+    define('QTRANSLATE_DIR', __DIR__);
 }
 
-require_once( QTRANSLATE_DIR . '/inc/qtx_class_translator.php' );
+if (!defined('QTRANSLATE_URL')) {
+    define('QTRANSLATE_URL', plugin_dir_url(__FILE__));
+}
 
-if ( is_admin() ) {
-    require_once( QTRANSLATE_DIR . '/admin/qtx_activation_hook.php' );
+require_once(QTRANSLATE_DIR . '/inc/qtx_class_translator.php');
+
+if (is_admin()) {
+    require_once(QTRANSLATE_DIR . '/admin/qtx_activation_hook.php');
     qtranxf_register_activation_hooks();
 }
