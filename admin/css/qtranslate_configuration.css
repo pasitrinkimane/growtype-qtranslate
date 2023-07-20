@@ -22,6 +22,10 @@
     vertical-align: middle;
 }
 
+#qtranxs-languages-menu .img-flag {
+    width: 20px;
+}
+
 .qtranxs-lang-flag {
     vertical-align: middle;
     margin: 2px 4px;

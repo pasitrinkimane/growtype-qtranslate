@@ -55,7 +55,7 @@ class QTX_Admin_Settings {
             <h2><?php _e( 'Edit Language', 'qtranslate' ) ?></h2>
             <?php $this->add_language_form( '#', __( 'Save Changes &raquo;', 'qtranslate' ), $nonce_action ); ?>
             <p class="qtranxs-notes"><a
-                        href="<?php echo $this->options_uri . '#languages' ?>"><?php _e( 'back to configuration page', 'qtranslate' ) ?></a>
+                    href="<?php echo $this->options_uri . '#languages' ?>"><?php _e( 'back to configuration page', 'qtranslate' ) ?></a>
             </p>
         <?php else: ?>
             <h2><?php _e( 'Language Management (qTranslate-XT Configuration)', 'qtranslate' ) ?></h2>
@@ -139,7 +139,7 @@ class QTX_Admin_Settings {
                         </select>
                         <img src="." alt="<?php _e( 'Flag', 'qtranslate' ) ?>" id="preview_flag"
                              data-flag-path="<?php echo qtranxf_flag_location() ?>"
-                             style="vertical-align:middle; display:none"/>
+                             style="vertical-align:middle; display:none;max-width: 30px;margin-left: 5px;"/>
                         <?php
                     } else {
                         _e( 'Incorrect Flag Image Path! Please correct it!', 'qtranslate' );
@@ -315,7 +315,7 @@ class QTX_Admin_Settings {
                                 echo ' />';
                                 echo ' <a href="' . add_query_arg( 'moveup', $language, $this->options_uri ) . '"><img src="' . $pluginurl . 'img/arrowup.png" alt="up" /></a>';
                                 echo ' <a href="' . add_query_arg( 'movedown', $language, $this->options_uri ) . '"><img src="' . $pluginurl . 'img/arrowdown.png" alt="down" /></a>';
-                                echo ' <img src="' . $flag_location . $q_config['flag'][ $language ] . '" alt="' . $q_config['language_name'][ $language ] . '" /> ';
+                                echo ' <img class="img img-flag" src="' . $flag_location . $q_config['flag'][ $language ] . '" alt="' . $q_config['language_name'][ $language ] . '" /> ';
                                 echo ' ' . $q_config['language_name'][ $language ];
                                 echo '</label></td>';
                                 echo '<td>[:' . $language . ']</td><td><a href="' . $this->options_uri . '&edit=' . $language . '">' . __( 'Edit', 'qtranslate' ) . '</a></td><td><a href="' . $this->options_uri . '&disable=' . $language . '">' . __( 'Disable', 'qtranslate' ) . '</a></td>';

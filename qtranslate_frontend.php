@@ -212,6 +212,9 @@ function qtranxf_add_language_menu_item(&$items, &$menu_order, &$itemid, $key, $
     $colon = true; // [shown|hidden]
     $topflag = true;
 
+    $individual_mode = get_theme_mod('language_selector_individual_mode', false);
+    $text_mode = get_theme_mod('language_selector_text_mode', false);
+
     $p = strpos($item->url, '?');
     if ($p !== false) {
         $qs = substr($item->url, $p + 1);
@@ -279,13 +282,18 @@ function qtranxf_add_language_menu_item(&$items, &$menu_order, &$itemid, $key, $
         $item->url = '#';
     }
     if ($topflag) {
-        if (!empty($item->title)) {
-            if ($colon) {
-                $item->title = sprintf(__('%s:', 'qtranslate'), $item->title);
-            }    // translators: Colon after a title. For example, in top item of Language Menu.
-            $item->title .= '&nbsp;';
+        $item->title = '';
+//        if (!empty($item->title)) {
+//            if ($colon) {
+//                $item->title = sprintf(__('%s:', 'qtranslate'), $item->title);
+//            }    // translators: Colon after a title. For example, in top item of Language Menu.
+//            $item->title .= '&nbsp;';
+//        }
+        if (!$text_mode) {
+            $item->title .= '<img class="qtranxs-flag" src="' . $flag_location . $q_config['flag'][$toplang] . '" alt="' . $q_config['language_name'][$toplang] . '" />';//.' '.__('Flag', 'qtranslate')
+        } else {
+            $item->title .= $q_config['language_name'][$toplang];
         }
-        $item->title .= '<img class="qtranxs-flag" src="' . $flag_location . $q_config['flag'][$toplang] . '" alt="' . $q_config['language_name'][$toplang] . '" />';//.' '.__('Flag', 'qtranslate')
     }
     if (empty($item->attr_title)) {
         $item->attr_title = $q_config['language_name'][$toplang];
@@ -303,6 +311,11 @@ function qtranxf_add_language_menu_item(&$items, &$menu_order, &$itemid, $key, $
     }
 
     foreach ($q_config['enabled_languages'] as $lang) {
+
+        if ($language === $lang) {
+            continue;
+        }
+
         if ($type == 'AL') {
             if ($lang == $language) {
                 continue;
@@ -331,14 +344,16 @@ function qtranxf_add_language_menu_item(&$items, &$menu_order, &$itemid, $key, $
         $item->type = 'custom';
         $item->type_label = 'Custom';
         $item->title = '';
-        if ($flags) {
+        if ($flags && !$text_mode) {
             $item->title = '<img class="qtranxs-flag" src="' . $flag_location . $q_config['flag'][$lang] . '" alt="' . $q_config['language_name'][$lang] . '" />';
         }
         if ($lang_names) {
-            if ($flags) {
-                $item->title .= '&nbsp;';
+//            if ($flags) {
+//                $item->title .= '&nbsp;';
+//            }
+            if ($text_mode) {
+                $item->title .= $q_config['language_name'][$lang];
             }
-            $item->title .= $q_config['language_name'][$lang];
         }
         $item->post_title = $item->title;
         $item->post_name = 'language-menuitem-' . $lang;
@@ -999,5 +1014,5 @@ qtranxf_force_main_language();
  * Add custom styles
  */
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('qtranslate-general', plugins_url( 'dist/general.css', QTRANSLATE_FILE ), false, null);
+    wp_enqueue_style('qtranslate-general', plugins_url('dist/general.css', QTRANSLATE_FILE), false, null);
 }, 100);

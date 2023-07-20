@@ -77,17 +77,19 @@ function language_customize_register($wp_customize)
 add_action('growtype_header_inner_before_close', 'growtype_header_inner_before_close_extend');
 function growtype_header_inner_before_close_extend()
 {
+    $text_mode = get_theme_mod('language_selector_text_mode', false);
+
     if (growtype_qtranslate_language_selector()) {
-        echo growtype_qtranslate_language_selector_html();
+        echo growtype_qtranslate_language_selector_html($text_mode ? 'text' : 'image');
     }
 }
 
-function growtype_qtranslate_language_selector_html()
+function growtype_qtranslate_language_selector_html($args)
 {
     ob_start();
     ?>
     <div class="language-selector <?php echo growtype_qtranslate_language_selector_classes() ?>">
-        <?php echo qtranxf_generateLanguageSelectCode('text') ?>
+        <?php echo qtranxf_generateLanguageSelectCode($args) ?>
     </div>
     <?php
 
@@ -110,14 +112,14 @@ function growtype_qtranslate_language_selector()
 function growtype_qtranslate_language_selector_classes()
 {
     $classes = [];
-    $individual = get_theme_mod('language_selector_individual_mode', false);
-    $text = get_theme_mod('language_selector_text_mode', false);
+    $individual_mode = get_theme_mod('language_selector_individual_mode', false);
+    $text_mode = get_theme_mod('language_selector_text_mode', false);
 
-    if ($individual) {
+    if ($individual_mode) {
         array_push($classes, 'individual-mode');
     }
 
-    if ($text) {
+    if ($text_mode) {
         array_push($classes, 'text-mode');
     }
 

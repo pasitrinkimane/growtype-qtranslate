@@ -4,18 +4,14 @@
     bottom: 0;
     margin: auto;
     top: 0;
-    height: 20px;
     display: inline-block;
     margin-left: 9px;
+    width: 45px;
+    height: 25px;
 }
 
-@media only screen and (max-width: 640px) {
-    .language-selector {
-        position: relative;
-        right: 0;
-        bottom: 0;
-        top: 0;
-    }
+.language-selector #qtranslate-chooser {
+    position: absolute;
 }
 
 .language-selector.text-mode {
@@ -44,6 +40,31 @@
     padding: 0;
 }
 
+.language-selector.individual-mode {
+    width: initial;
+}
+
+.language-selector.individual-mode #qtranslate-chooser {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    gap: 5px;
+    position: relative;
+    width: auto;
+}
+
+.language-selector.individual-mode #qtranslate-chooser li {
+    display: block;
+}
+
+.language-selector:not(.individual-mode) #qtranslate-chooser {
+    padding-right: 10px;
+}
+
 #qtranslate-chooser li {
     -webkit-transition: all 0.5s;
     -o-transition: all 0.5s;
@@ -66,6 +87,11 @@
     display: inline-block;
     width: 24px;
     height: 14px;
+    text-decoration: none;
+}
+
+#qtranslate-chooser li img {
+    width: 25px;
 }
 
 #qtranslate-chooser:hover li {
@@ -74,48 +100,7 @@
 
 #qtranslate-chooser span {
     font-weight: 400;
-    margin-top: 1px;
-    display: none;
-}
-
-#qtranslate-chooser li.lang-lt a {
-    background-image: url(./../flags/svg/lt.svg?ccd909176725d0942a8214fcda8ca3ad);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-en a {
-    background-image: url(./../flags/svg/uk.svg?4625536da3cba4fb6519cb345095c7be);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-pl a {
-    background-image: url(./../flags/svg/pl.svg?3ff5a87ab9899dca0f60bf6331de84cf);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-dk a {
-    background-image: url(./../flags/svg/dk.svg?c67d774e2db5e0e48f22544b5ad5e58a);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-no a {
-    background-image: url(./../flags/svg/no.svg?4f86ba66ac7c33d0e2f9651e89d679ce);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-de a {
-    background-image: url(./../flags/svg/de.svg?3aa2adae0bf73f31c4cddf4864c295ad);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-lv a {
-    background-image: url(./../flags/svg/lv.svg?bc4d7ddab707d1a2c6bd655d86f7bfbd);
-    background-size: cover;
-}
-
-#qtranslate-chooser li.lang-ru a {
-    background-image: url(./../flags/svg/ru.svg?ba60c71e8c5e12920ad2f18a0b776514);
-    background-size: cover;
+    /*display: none;*/
 }
 
 #header-side-menu .qtranxs-lang-menu {
@@ -133,6 +118,30 @@
     min-height: 27px;
 }
 
+.qtranxs-lang-menu > a:before, .language-selector:not(.individual-mode) .language-chooser:before {
+    content: '';
+    border: solid black;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 2px;
+    transform: rotate(45deg);
+    position: absolute;
+    right: 5px;
+    top: 7px;
+    margin: auto;
+    width: 2px;
+    height: 2px;
+}
+
+.language-selector:not(.individual-mode) .language-chooser:before {
+    top: 10px;
+}
+
+.qtranxs-lang-menu a {
+    cursor: pointer;
+    padding: 0 !important;
+}
+
 .qtranxs-lang-menu li {
     margin: 0 !important;
 }
@@ -146,11 +155,12 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 30px !important;
+    top: 25px !important;
     margin: 0 !important;
     padding: 0 !important;
     background: none !important;
     border: none !important;
+    min-width: initial !important;
 }
 
 .qtranxs-lang-menu .sub-menu li {
@@ -158,13 +168,19 @@
 }
 
 .qtranxs-lang-menu a {
-    max-width: 25px;
     display: inline-block;
-    min-width: 43px;
+    font-size: 16px;
+    padding-right: 15px !important;
+    text-align: center;
+}
+
+.qtranxs-lang-menu .sub-menu a {
+    font-size: 16px !important;
 }
 
 .qtranxs-lang-menu a img {
     max-width: 100%;
+    width: 25px;
 }
 
 .individual-mode #qtranslate-chooser li {
