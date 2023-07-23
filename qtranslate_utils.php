@@ -383,10 +383,11 @@ function qtranxf_external_host( $host ) {
     return qtranxf_external_host_ex( $host, $homeinfo );
 }
 
-function qtranxf_isMultilingual( $str ) {
+function qtranxf_isMultilingual($str)
+{
     $lang_code = QTX_LANG_CODE_FORMAT;
 
-    return preg_match( "/<!--:$lang_code-->|\[:$lang_code]|{:$lang_code}/im", $str );
+    return !empty($str) ? preg_match("/<!--:$lang_code-->|\[:$lang_code]|{:$lang_code}/im", $str) : $str;
 }
 
 function qtranxf_is_multilingual_deep( $value ) {

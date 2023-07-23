@@ -83,6 +83,10 @@
     order: 0;
 }
 
+#qtranslate-chooser li.active a{
+    pointer-events: none;
+}
+
 #qtranslate-chooser li a {
     display: inline-block;
     width: 24px;
