@@ -83,7 +83,7 @@
     order: 0;
 }
 
-#qtranslate-chooser li.active a{
+#qtranslate-chooser li.active a {
     pointer-events: none;
 }
 
@@ -188,5 +188,5 @@
 }
 
 .individual-mode #qtranslate-chooser li {
-    order: 0;
+    order: 0 !important;
 }
