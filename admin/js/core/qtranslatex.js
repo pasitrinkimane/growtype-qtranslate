@@ -808,8 +808,13 @@ const qTranslateX = function (pg) {
         }
         hook.mce = editor;
 
-        editor.getContainer().classList.add('qtranxs-translatable');
-        editor.getElement().classList.add('qtranxs-translatable');
+        if (editor.getContainer()) {
+            editor.getContainer().classList.add('qtranxs-translatable');
+        }
+
+        if (editor.getElement()) {
+            editor.getElement().classList.add('qtranxs-translatable');
+        }
 
         return hook;
     }
