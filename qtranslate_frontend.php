@@ -1014,5 +1014,5 @@ qtranxf_force_main_language();
  * Add custom styles
  */
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_style('qtranslate-general', plugins_url('dist/general.css', QTRANSLATE_FILE), false, null);
+    wp_enqueue_style('qtranslate-general-css', plugins_url('dist/general.css', QTRANSLATE_FILE), false, null);
 }, 100);
