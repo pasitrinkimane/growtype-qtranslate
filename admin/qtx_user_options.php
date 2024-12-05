@@ -8,7 +8,15 @@ add_action( 'edit_user_profile', 'qtranxf_show_extra_profile_fields' );
 
 function qtranxf_show_extra_profile_fields( $user ) {
     global $q_config;
-    if ( $q_config['highlight_mode'] != QTX_HIGHLIGHT_MODE_NONE ) { ?>
+
+    $role_is_prevented = array_filter([
+        'subscriber',
+        'lead',
+    ], function ($role) {
+        return current_user_can($role);
+    });
+
+    if (!$role_is_prevented && $q_config['highlight_mode'] != QTX_HIGHLIGHT_MODE_NONE ) { ?>
         <h3><?php _e( 'Translation options', 'qtranslate' ) ?></h3>
         <table class="form-table qtranxs-form-table" id="qtranxs_user_config">
             <tr>

@@ -114,7 +114,9 @@ function qtranxf_init_language() {
 
     // load plugin translations
     // since 3.2-b3 moved it here as https://codex.wordpress.org/Function_Reference/load_plugin_textdomain seem to recommend to run load_plugin_textdomain in 'plugins_loaded' action, which is this function responds to
-    qtranxf_load_plugin_textdomain();
+    add_action('init', function () {
+        qtranxf_load_plugin_textdomain();
+    });
 
     /**
      * allow other plugins to initialize whatever they need before the fork between front and admin.
