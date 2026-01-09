@@ -12,6 +12,7 @@ function qtranxf_show_extra_profile_fields( $user ) {
     $role_is_prevented = array_filter([
         'subscriber',
         'lead',
+        'affiliate',
     ], function ($role) {
         return current_user_can($role);
     });

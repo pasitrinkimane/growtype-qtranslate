@@ -999,7 +999,7 @@ function qtranxf_force_main_language()
 {
     global $q_config;
 
-    if ($q_config['force_main_language'] === true && !(is_admin())) {
+    if ($q_config['force_main_language'] === true && !(is_admin()) && isset($_SERVER['HTTP_HOST'])) {
         $actual_link = "https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         if (qtranxf_getLanguage() !== qtranxf_getLanguageDefault()) {
             header("Location: " . qtranxf_convertURL($actual_link, qtranxf_getLanguageDefault(), true, true));

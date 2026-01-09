@@ -1066,6 +1066,22 @@ function qtranxf_update_admin_notice( $id, $set ) {
 }
 
 function qtranxf_ajax_qtranslate_admin_notice() {
+    // SECURITY: Verify nonce to prevent CSRF attacks
+    if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'qtranslate_admin_notice_nonce' ) ) {
+        error_log( 'qTranslate - Admin notice nonce verification failed' );
+        wp_send_json_error( [
+            'message' => __( 'Security verification failed.', 'qtranslate' )
+        ], 403 );
+    }
+    
+    // SECURITY: Require admin capabilities
+    if ( ! current_user_can( 'manage_options' ) ) {
+        error_log( 'qTranslate - Unauthorized admin notice dismiss attempt by user ' . get_current_user_id() );
+        wp_send_json_error( [
+            'message' => __( 'You do not have permission to perform this action.', 'qtranslate' )
+        ], 403 );
+    }
+    
     if ( ! isset( $_POST['notice_id'] ) ) {
         return;
     }
@@ -1083,6 +1099,10 @@ function qtranxf_admin_notice_dismiss_script() {
     }
     $admin_notice_dismiss_script = true;
     wp_register_script( 'qtx_admin_notices', plugins_url( 'dist/notices.js', QTRANSLATE_FILE ), array( 'jquery' ), QTX_VERSION );
+    // SECURITY: Add nonce for AJAX calls
+    wp_localize_script( 'qtx_admin_notices', 'qtranslateAdminNotices', array(
+        'nonce' => wp_create_nonce( 'qtranslate_admin_notice_nonce' )
+    ) );
     wp_enqueue_script( 'qtx_admin_notices' );
 }
 

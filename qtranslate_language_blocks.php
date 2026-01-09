@@ -14,6 +14,10 @@ function qtranxf_get_language_blocks($text)
     $lang_code = QTX_LANG_CODE_FORMAT;
     $split_regex = "#(<!--:$lang_code-->|<!--:-->|\[:$lang_code\]|\[:\]|\{:$lang_code\}|\{:\})#ism";
 
+    if (empty($text)) {
+        return [];
+    }
+
     return preg_split($split_regex, $text, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 }
 
