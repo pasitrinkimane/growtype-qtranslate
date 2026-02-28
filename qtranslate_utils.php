@@ -117,7 +117,11 @@ function qtranxf_buildURL( $urlinfo, $homeinfo ) {
     if ( empty( $urlinfo['host'] ) ) {
         $url = ''; // relative path stays relative
     } else {
-        $url = ( empty( $urlinfo['scheme'] ) ? $homeinfo['scheme'] : $urlinfo['scheme'] ) . '://';
+        $scheme = $urlinfo['scheme'] ?? ( $homeinfo['scheme'] ?? '' );
+        if ( $scheme === '' ) {
+            $scheme = function_exists( 'is_ssl' ) && is_ssl() ? 'https' : 'http';
+        }
+        $url = $scheme . '://';
         if ( ! empty( $urlinfo['user'] ) ) {
             $url .= $urlinfo['user'];
             if ( ! empty( $urlinfo['pass'] ) ) {
