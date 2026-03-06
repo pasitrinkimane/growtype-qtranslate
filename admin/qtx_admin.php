@@ -625,6 +625,7 @@ function qtranxf_nav_menu_metabox( $object ) {
         public $attr_title = '';
         public $classes = array();
         public $xfn = '';
+        public $label = '';
     }
 
     $elems_obj = array();
