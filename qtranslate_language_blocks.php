@@ -370,6 +370,17 @@ function qtranxf_use($lang, $text, $show_available = false, $show_empty = false)
 /** when $text is already known to be string */
 function qtranxf_use_language($lang, $text, $show_available = false, $show_empty = false)
 {
+    // Fast pre-check: skip the expensive preg_split if no language markers are present.
+    if (strpos($text, '[:') === false && strpos($text, '<!--:') === false && strpos($text, '{:') === false) {
+        return $text;
+    }
+
+    // Safety guard: bail on oversized strings to prevent memory exhaustion.
+    // Legitimate multilingual strings do not need to be larger than 512 KB.
+    if (strlen($text) > 524288) {
+        return $text;
+    }
+
     $blocks = qtranxf_get_language_blocks($text);
     if (count($blocks) <= 1)//no language is encoded in the $text, the most frequent case
     {
