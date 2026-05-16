@@ -364,6 +364,38 @@ function qtranxf_use($lang, $text, $show_available = false, $show_empty = false)
         return $text;
     }
 
+    // OOM guard 1: skip translation processing on oversized strings.
+    // Legitimate multilingual strings never need to be larger than 512 KB.
+    // Character personality blobs, JSON payloads, and base64 images can be
+    // several MB and would cause preg_split() to exhaust PHP memory.
+    if (strlen($text) > 524288) {
+        return $text;
+    }
+
+    // OOM guard 2: runtime memory pressure check.
+    // Even if the string is small, the PHP process may already be near its limit
+    // from upstream operations (character inflation, session hydration, etc.).
+    // If less than 64MB of headroom remains, skip translation to avoid fatal OOM.
+    static $memory_limit_bytes = null;
+    if ($memory_limit_bytes === null) {
+        $ml = ini_get('memory_limit');
+        if ($ml === '-1') {
+            $memory_limit_bytes = PHP_INT_MAX;
+        } else {
+            $unit = strtolower(substr($ml, -1));
+            $val  = (int) $ml;
+            $memory_limit_bytes = match ($unit) {
+                'g' => $val * 1073741824,
+                'm' => $val * 1048576,
+                'k' => $val * 1024,
+                default => $val,
+            };
+        }
+    }
+    if (memory_get_usage(true) > ($memory_limit_bytes - 67108864)) { // < 64MB left
+        return $text;
+    }
+
     return qtranxf_use_language($lang, $text, $show_available, $show_empty);
 }
 
