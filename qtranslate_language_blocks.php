@@ -384,12 +384,12 @@ function qtranxf_use($lang, $text, $show_available = false, $show_empty = false)
         } else {
             $unit = strtolower(substr($ml, -1));
             $val  = (int) $ml;
-            $memory_limit_bytes = match ($unit) {
-                'g' => $val * 1073741824,
-                'm' => $val * 1048576,
-                'k' => $val * 1024,
-                default => $val,
-            };
+            switch ($unit) {
+                case 'g': $memory_limit_bytes = $val * 1073741824; break;
+                case 'm': $memory_limit_bytes = $val * 1048576; break;
+                case 'k': $memory_limit_bytes = $val * 1024; break;
+                default:  $memory_limit_bytes = $val; break;
+            }
         }
     }
     if (memory_get_usage(true) > ($memory_limit_bytes - 67108864)) { // < 64MB left
